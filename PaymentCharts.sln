@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.24720.0
+# Visual Studio 15
+VisualStudioVersion = 15.0.26430.16
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Process", "Process\Process.fsproj", "{C2A22C89-6C1F-462D-A73C-F7014C019705}"
 EndProject
@@ -9,6 +9,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		Data.sql = Data.sql
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Process.UnitTests", "Process.UnitTests\Process.UnitTests.csproj", "{B1102076-40F9-4694-9C45-A5A289618606}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -20,6 +22,10 @@ Global
 		{C2A22C89-6C1F-462D-A73C-F7014C019705}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C2A22C89-6C1F-462D-A73C-F7014C019705}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C2A22C89-6C1F-462D-A73C-F7014C019705}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B1102076-40F9-4694-9C45-A5A289618606}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B1102076-40F9-4694-9C45-A5A289618606}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B1102076-40F9-4694-9C45-A5A289618606}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B1102076-40F9-4694-9C45-A5A289618606}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

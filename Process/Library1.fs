@@ -1,18 +1,15 @@
 ﻿module Test
 
 open System
-open System.Data
-open System.Data.Linq
 open FSharp.Data.TypeProviders
 open FSharp.Plotly
-open Microsoft.FSharp.Linq
 
 type internal DB = SqlDataConnection<"Data Source=(localdb)\MSSqlLocalDB;Initial Catalog=PaymentsData;Integrated Security=SSPI;", Pluralize=true>
  let private dc = DB.GetDataContext()
 
  let printSeq seq1 = Seq.iter (printf "%A ") seq1; printfn ""
 
- let private d, t, s = 
+ let d, t, s = 
   query {
    for transaction in dc.LedgerTransactions do
    where (transaction.LedgerTransactionDateTime > DateTime.UtcNow.Subtract(TimeSpan.FromDays(7.00)))
@@ -26,7 +23,6 @@ type internal DB = SqlDataConnection<"Data Source=(localdb)\MSSqlLocalDB;Initial
                             let ttype =
                              match fst groupedTransactions with
                              | (tday, ttype) -> ttype
-                            //let sequence = snd tranDay
                             let sumAmount = snd groupedTransactions |> Seq.fold (fun acc tran -> acc + tran.Amount) 0m
                             let depOrWith = snd groupedTransactions |> Seq.groupBy (fun tran -> tran.LedgerTransactionTypeId)
                             day, ttype, sumAmount)
@@ -35,13 +31,7 @@ type internal DB = SqlDataConnection<"Data Source=(localdb)\MSSqlLocalDB;Initial
   
  //let days = d |> Seq.ofList
 
- let chart = 
-  [
-   Chart.StackedBar(d,s,Name="dep");
-  //Chart.StackedBar(d,s,Name="with")
-  ]
-  |> Chart.Combine
-
+ 
 // [1, 2, 3, 4, 5]
 // [100, 50, 80, 110, 120]
   
