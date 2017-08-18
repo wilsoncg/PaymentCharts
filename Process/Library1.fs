@@ -31,14 +31,14 @@ type internal DB = SqlDataConnection<"Data Source=(localdb)\MSSqlLocalDB;Initial
                             let sumAmount = snd groupedTransactions |> Seq.fold (fun acc tran -> acc + tran.Amount) 0m
                             day, ttype, sumAmount)
 
-  //|> List.ofSeq
+  
+ let first (a, _, _) = a
+ let second (_, b, _) = b
+ let third (_, _, c) = c
+
  let days = 
   transactions
-  |> Seq.map (fun t -> 
-             let day = 
-              match t with
-              | (d, _, _) -> d
-             day)
+  |> Seq.map (fun t -> first t)
   |> List.ofSeq
 
   
