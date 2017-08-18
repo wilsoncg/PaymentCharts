@@ -39,23 +39,23 @@ USE PaymentsData
 
 -- Insert data into the Table1 table.
 INSERT INTO [LedgerTransaction] (LedgerTransactionId, LedgerTransactionTypeId, LedgerTransactionDateTime, Amount, CurrencyId)
-  VALUES(1, 82, '2017-07-07 13:20:50.857', 200.000000, 6);
+  VALUES(1, 82, '2017-08-17 13:20:50.857', 200.000000, 6);
 INSERT INTO [LedgerTransaction] (LedgerTransactionId, LedgerTransactionTypeId, LedgerTransactionDateTime, Amount, CurrencyId)
-   VALUES(2, 82, '2017-07-07 13:23:33.760', 20.000000, 6);
+   VALUES(2, 82, '2017-08-17 13:23:33.760', 20.000000, 6);
 INSERT INTO [LedgerTransaction] (LedgerTransactionId, LedgerTransactionTypeId, LedgerTransactionDateTime, Amount, CurrencyId)
-VALUES(3, 82, '2017-07-07 13:24:40.660', 100.000000, 6);
+VALUES(3, 82, '2017-08-16 13:24:40.660', 100.000000, 6);
 INSERT INTO [LedgerTransaction] (LedgerTransactionId, LedgerTransactionTypeId, LedgerTransactionDateTime, Amount, CurrencyId)
-VALUES(4, 115, '2017-07-07 13:25:10.760', 1122.000000, 6);
+VALUES(4, 115, '2017-08-16 13:25:10.760', 50.000000, 6);
 INSERT INTO [LedgerTransaction] (LedgerTransactionId, LedgerTransactionTypeId, LedgerTransactionDateTime, Amount, CurrencyId)
-VALUES(5, 115, '2017-07-07 13:25:38.953', 0.150000, 6);
+VALUES(5, 115, '2017-08-16 13:25:38.953', 60.000000, 6);
 INSERT INTO [LedgerTransaction] (LedgerTransactionId, LedgerTransactionTypeId, LedgerTransactionDateTime, Amount, CurrencyId)
-VALUES(6, 82, '2017-07-07 13:26:29.303', 2400.000000, 6);
+VALUES(6, 82, '2017-08-16 13:26:29.303', 2400.000000, 6);
 INSERT INTO [LedgerTransaction] (LedgerTransactionId, LedgerTransactionTypeId, LedgerTransactionDateTime, Amount, CurrencyId)
-VALUES(7, 82, '2017-07-07 13:28:01.110', 50.000000, 24);
+VALUES(7, 82, '2017-08-16 13:28:01.110', 50.000000, 24);
 INSERT INTO [LedgerTransaction] (LedgerTransactionId, LedgerTransactionTypeId, LedgerTransactionDateTime, Amount, CurrencyId)
-VALUES(8, 82, '2017-07-07 13:29:55.207', 55.000000, 6);
+VALUES(8, 82, '2017-08-16 13:29:55.207', 55.000000, 6);
 INSERT INTO [LedgerTransaction] (LedgerTransactionId, LedgerTransactionTypeId, LedgerTransactionDateTime, Amount, CurrencyId)
-VALUES(9, 82, '2017-07-07 13:30:06.757', 69.390000, 6);
+VALUES(9, 82, '2017-08-16 13:30:06.757', 50.000000, 6);
 
 
 --LedgerTransactionId	LedgerTransactionTypeId	LedgerTransactionDateTime	Amount	CurrencyId	AccountOperatorID	LedgerTransactionDesc

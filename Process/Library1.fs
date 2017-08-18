@@ -9,10 +9,11 @@ type internal DB = SqlDataConnection<"Data Source=(localdb)\MSSqlLocalDB;Initial
 
  let printSeq seq1 = Seq.iter (printf "%A ") seq1; printfn ""
 
- let d, t, s = 
+ let transactions = 
   query {
    for transaction in dc.LedgerTransactions do
-   where (transaction.LedgerTransactionDateTime > DateTime.UtcNow.Subtract(TimeSpan.FromDays(7.00)))
+   where (transaction.LedgerTransactionDateTime >= DateTime.UtcNow.Subtract(TimeSpan.FromDays(14.00)))
+   sortByDescending transaction.LedgerTransactionDateTime
    select transaction
   } 
   |> Seq.groupBy (fun tran -> tran.LedgerTransactionDateTime.Day, tran.LedgerTransactionTypeId)
@@ -22,18 +23,33 @@ type internal DB = SqlDataConnection<"Data Source=(localdb)\MSSqlLocalDB;Initial
                              | (tday, ttype) -> tday
                             let ttype =
                              match fst groupedTransactions with
-                             | (tday, ttype) -> ttype
+                             | (tday, ttype) -> 
+                              match ttype with
+                              | 82 -> "Deposit"
+                              | 115 -> "Withdrawal"
+                              | _ -> "Other"
                             let sumAmount = snd groupedTransactions |> Seq.fold (fun acc tran -> acc + tran.Amount) 0m
-                            let depOrWith = snd groupedTransactions |> Seq.groupBy (fun tran -> tran.LedgerTransactionTypeId)
                             day, ttype, sumAmount)
-  |> List.ofSeq 
-  |> List.unzip3 
-  
- //let days = d |> Seq.ofList
 
- 
-// [1, 2, 3, 4, 5]
-// [100, 50, 80, 110, 120]
+  //|> List.ofSeq
+ let days = 
+  transactions
+  |> Seq.map (fun t -> 
+             let day = 
+              match t with
+              | (d, _, _) -> d
+             day)
+  |> List.ofSeq
+
+  
+ // Order by date descending?
+
+ // keys = days
+ // values = list of amounts, for each day, for only one type
+ // [ (100, 17), (99, 16), (101, 15) ] £100-17th, £99-16th, £101-15th...
+
+// [17, 16, 15, 14, 13]
+// [1122.15, xxxx ]
   
 //printSeq sum
   //|> Seq.fold (fun acc tran -> acc + tran.Amount) 0m

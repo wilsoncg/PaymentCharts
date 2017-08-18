@@ -13,7 +13,7 @@ let layout =
 
 let chart = 
   [
-   Chart.StackedBar(Test.d, Test.s, Name="dep");
+   Chart.StackedBar(Test.days, Test.sum, Name="dep");
   //Chart.StackedBar(d,s,Name="with")
   ]
   |> Chart.Combine
