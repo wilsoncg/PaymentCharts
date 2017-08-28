@@ -38,9 +38,14 @@ type internal DB = SqlDataConnection<"Data Source=(localdb)\MSSqlLocalDB;Initial
 
  let days = 
   transactions
-  |> Seq.map (fun t -> first t)
+  |> Seq.map (fun t -> first t)  
+  |> Seq.distinct
   |> List.ofSeq
 
+ let amounts =
+  transactions
+  |> Seq.groupBy (fun t -> second t)
+  |> List.ofSeq
   
  // Order by date descending?
 
