@@ -5,46 +5,50 @@ open FSharp.Data.TypeProviders
 open FSharp.Plotly
 
 type internal DB = SqlDataConnection<"Data Source=(localdb)\MSSqlLocalDB;Initial Catalog=PaymentsData;Integrated Security=SSPI;", Pluralize=true>
- let private dc = DB.GetDataContext()
+let private dc = DB.GetDataContext()
 
- let printSeq seq1 = Seq.iter (printf "%A ") seq1; printfn ""
+let printSeq seq1 = Seq.iter (printf "%A ") seq1; printfn ""
 
- let transactions = 
+let private gtransactions = 
   query {
    for transaction in dc.LedgerTransactions do
-   where (transaction.LedgerTransactionDateTime >= DateTime.UtcNow.Subtract(TimeSpan.FromDays(14.00)))
+   where (transaction.LedgerTransactionDateTime >= DateTime.UtcNow.Subtract(TimeSpan.FromDays(28.00)))
    sortByDescending transaction.LedgerTransactionDateTime
    select transaction
   } 
   |> Seq.groupBy (fun tran -> tran.LedgerTransactionDateTime.Day, tran.LedgerTransactionTypeId)
+
+let transactions =
+  gtransactions
   |> Seq.map (fun groupedTransactions -> 
                             let day = 
                              match fst groupedTransactions with
                              | (tday, ttype) -> tday
-                            let ttype =
+                            let stype =
                              match fst groupedTransactions with
                              | (tday, ttype) -> 
                               match ttype with
                               | 82 -> "Deposit"
                               | 115 -> "Withdrawal"
                               | _ -> "Other"
-                            let sumAmount = snd groupedTransactions |> Seq.fold (fun acc tran -> acc + tran.Amount) 0m
-                            day, ttype, sumAmount)
+                            let sumAmount = 
+                             snd groupedTransactions 
+                             |> Seq.fold (fun acc tran -> acc + tran.Amount) 0m
+                            day, stype, sumAmount)
 
-  
- let first (a, _, _) = a
- let second (_, b, _) = b
- let third (_, _, c) = c
+let first (a, _, _) = a
+let second (_, b, _) = b
+let third (_, _, c) = c
 
- let days = 
+let days = 
   transactions
   |> Seq.map (fun t -> first t)  
   |> Seq.distinct
   |> List.ofSeq
 
- let amounts =
+let amounts =
   transactions
-  |> Seq.groupBy (fun t -> second t)
+  |> Seq.groupBy (fun t -> first t)
   |> List.ofSeq
   
  // Order by date descending?
