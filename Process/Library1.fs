@@ -17,6 +17,37 @@ let private gtransactions =
   } 
   |> Seq.groupBy (fun tran -> tran.LedgerTransactionDateTime.Day, tran.LedgerTransactionTypeId)
 
+let search map = Option.bind (fun k -> Map.tryFind k map)
+type private Currency = { BaseCurrencyId : int; TermsCurrencyId : int; Rate : decimal; }
+let private convertCurrency fromCurrency toCurrency amount =
+ let rates =
+    query {
+        for r in dc.FXRates do
+        select r
+        }
+    |> Seq.map (fun r -> { BaseCurrencyId = r.BaseCurrencyId; TermsCurrencyId = r.TermsCurrencyId; Rate = r.EndOfDayRate })
+    |> Seq.toList
+ let direct fromId toId c =
+    (c.BaseCurrencyId = fromId && c.TermsCurrencyId = toId)
+ let invert fromId toId c =
+    (c.TermsCurrencyId = fromId & c.BaseCurrencyId = toId)
+ let cross c1 c2 fromId toId =
+    (c1.BaseCurrencyId = fromId & c1.TermsCurrencyId = c2.BaseCurrencyId & c2.TermsCurrencyId = toId)
+ let invertCross c1 c2 fromId toId =
+    (c1.TermsCurrencyId = fromId & c1.BaseCurrencyId = c2.TermsCurrencyId & c2.BaseCurrencyId = toId)
+
+ let converted =
+  match List.tryFind (direct fromCurrency toCurrency) rates with
+  | Some r -> amount * r.Rate 
+  | None -> match List.tryFind (invert fromCurrency toCurrency) rates with
+    | Some s -> amount / s.Rate
+    | None -> 0m
+ converted
+ 
+
+let convert amount fromId toId = 
+    convertCurrency fromId toId amount 
+
 let transactionTypeMap ttype =
  match ttype with
  | 82 -> "Deposit"
@@ -34,7 +65,11 @@ let transactions =
                              | (_, ttype) -> transactionTypeMap ttype
                             let sumAmount = 
                              snd groupedTransactions 
-                             |> Seq.fold (fun acc tran -> acc + tran.Amount) 0m
+                             |> Seq.fold (fun acc tran -> 
+                                match tran.CurrencyId with
+                                | 6 -> acc + tran.Amount
+                                | _ -> acc + convert tran.Amount tran.CurrencyId 6
+                                ) 0m
                             day, stype, sumAmount)
 
 let first (a, _, _) = a

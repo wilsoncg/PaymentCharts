@@ -6,6 +6,10 @@ GO
 USE [master];
 GO
 
+ALTER DATABASE PaymentsData
+SET SINGLE_USER WITH
+ROLLBACK AFTER 5 --this will give your current connections 5 seconds to complete
+
 IF EXISTS (SELECT * FROM sys.databases WHERE name = 'PaymentsData')
   DROP DATABASE PaymentsData;
 GO
@@ -38,6 +42,7 @@ CREATE TABLE [dbo].[FXRate] (
     [BaseCurrencyId]  INT             NOT NULL,
     [TermsCurrencyId] INT             NOT NULL,
     [EndOfDayRate]    DECIMAL (18, 7) NOT NULL
+	PRIMARY KEY CLUSTERED ([BaseCurrencyId] ASC, [TermsCurrencyId] ASC)
 );
 
 USE PaymentsData
@@ -79,3 +84,5 @@ INSERT INTO [dbo].[FXRate] ([BaseCurrencyId], [TermsCurrencyId], [EndOfDayRate])
 --7	82	2017-07-07 13:28:01.110	50.000000	24	2101	Card Deposit between Client and Card Control
 --8	82	2017-07-07 13:29:55.207	55.000000	6	2020	Card Deposit between Client and Card Control
 --9	82	2017-07-07 13:30:06.757	69.390000	6	2438	Card Deposit between Client and Card Control
+
+ALTER DATABASE PaymentsData SET MULTI_USER
