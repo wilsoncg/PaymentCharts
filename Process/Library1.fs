@@ -2,7 +2,6 @@
 
 open System
 open FSharp.Data.TypeProviders
-open FSharp.Plotly
 
 type internal DB = SqlDataConnection<"Data Source=(localdb)\MSSqlLocalDB;Initial Catalog=PaymentsData;Integrated Security=SSPI;", Pluralize=true>
 let private dc = DB.GetDataContext()
@@ -18,19 +17,21 @@ let private gtransactions =
   } 
   |> Seq.groupBy (fun tran -> tran.LedgerTransactionDateTime.Day, tran.LedgerTransactionTypeId)
 
+let transactionTypeMap ttype =
+ match ttype with
+ | 82 -> "Deposit"
+ | 115 -> "Withdrawal"
+ | _ -> "Other"
+
 let transactions =
   gtransactions
   |> Seq.map (fun groupedTransactions -> 
                             let day = 
                              match fst groupedTransactions with
-                             | (tday, ttype) -> tday
+                             | (tday, _) -> tday
                             let stype =
                              match fst groupedTransactions with
-                             | (tday, ttype) -> 
-                              match ttype with
-                              | 82 -> "Deposit"
-                              | 115 -> "Withdrawal"
-                              | _ -> "Other"
+                             | (_, ttype) -> transactionTypeMap ttype
                             let sumAmount = 
                              snd groupedTransactions 
                              |> Seq.fold (fun acc tran -> acc + tran.Amount) 0m
@@ -40,16 +41,28 @@ let first (a, _, _) = a
 let second (_, b, _) = b
 let third (_, _, c) = c
 
-let days = 
-  transactions
-  |> Seq.map (fun t -> first t)  
-  |> Seq.distinct
-  |> List.ofSeq
+//let days, amounts =
+//  transactions
+//  |> Seq.map (fun t -> 
+//    first t, third t)
+//  |> Seq.toList
+//  |> List.unzip
 
-let amounts =
-  transactions
-  |> Seq.groupBy (fun t -> first t)
-  |> List.ofSeq
+let getFrom list selector =
+  list
+  |> Seq.map selector
+
+type StackInfo = { Name : string; Days : seq<int>; Amounts : seq<decimal> }
+let stacks =
+    transactions
+    |> Seq.groupBy (fun t -> second t)
+    |> Seq.map (fun t -> 
+        let trans = snd t
+        { 
+            Name = fst t; 
+            Days = getFrom trans first;
+            Amounts = getFrom trans third;
+        })
   
  // Order by date descending?
 

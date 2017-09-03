@@ -11,21 +11,13 @@ open FSharp.Plotly
 let layout =
     Layout()
 
-// [(deposit, [(17, deposit, 100); (16, deposit, 99); ... ], withdrawal [(17, withdrawal, 100); ..] )]
+// [(deposit, [(2, deposit, 220); (1, deposit, 2655); ... ], withdrawal [(1, withdrawal, 110); ..] )]
 
 let stacks =
- Test.amounts
+ Test.stacks
  |> Seq.map (fun t ->
-            let transactions = snd t
-            let _, name, amounts = 
-             transactions
-             |> Seq.toList
-             |> List.unzip3
-            transactions
-            |> Seq.map (fun t ->
-               Chart.StackedBar(Test.days, amounts, Name= sprintf "%A" name)))
-            |> Seq.concat
-            
+        Chart.StackedBar(t.Days, t.Amounts, Name= sprintf "%A" t.Name))
+
 let chart = 
   stacks
   |> Chart.Combine
