@@ -66,12 +66,15 @@ INSERT INTO [LedgerTransaction] (LedgerTransactionId, LedgerTransactionTypeId, L
 VALUES(8, 82, '2017-09-01 13:29:55.207', 55.000000, 6);
 INSERT INTO [LedgerTransaction] (LedgerTransactionId, LedgerTransactionTypeId, LedgerTransactionDateTime, Amount, CurrencyId)
 VALUES(9, 82, '2017-09-01 13:30:06.757', 50.000000, 6);
+INSERT INTO [LedgerTransaction] (LedgerTransactionId, LedgerTransactionTypeId, LedgerTransactionDateTime, Amount, CurrencyId)
+VALUES(10, 1, '2017-09-01 13:31:06.757', 50.000000, 25);
 
 
 INSERT INTO [dbo].[FXRate] ([BaseCurrencyId], [TermsCurrencyId], [EndOfDayRate]) VALUES (1, 11, CAST(0.7899000 AS Decimal(18, 7)))
 INSERT INTO [dbo].[FXRate] ([BaseCurrencyId], [TermsCurrencyId], [EndOfDayRate]) VALUES (4, 11, CAST(1.1886000 AS Decimal(18, 7)))
 INSERT INTO [dbo].[FXRate] ([BaseCurrencyId], [TermsCurrencyId], [EndOfDayRate]) VALUES (6, 11, CAST(1.2920000 AS Decimal(18, 7)))
 INSERT INTO [dbo].[FXRate] ([BaseCurrencyId], [TermsCurrencyId], [EndOfDayRate]) VALUES (11, 24, CAST(3.5788000 AS Decimal(18, 7)))
+INSERT INTO [dbo].[FXRate] ([BaseCurrencyId], [TermsCurrencyId], [EndOfDayRate]) VALUES (25, 11, CAST(0.5 AS Decimal(18, 7)))
 
 
 --LedgerTransactionId	LedgerTransactionTypeId	LedgerTransactionDateTime	Amount	CurrencyId	AccountOperatorID	LedgerTransactionDesc

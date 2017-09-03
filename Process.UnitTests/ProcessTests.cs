@@ -10,11 +10,7 @@ namespace Process.UnitTests
         [TestMethod]
         public void TestStacksAreCorrect()
         {
-            var trans = Test.transactions;
-            Assert.AreEqual(1, trans.Count(x => x.Item1 == 02));
-            Assert.AreEqual(2, trans.Count(x => x.Item1 == 01));
-
-            var stacks = Test.stacks.ToList();
+           var stacks = Test.stacks.ToList();
 
             Assert.IsTrue(stacks.Any(), "stacks empty");
             Assert.IsTrue(stacks.Count == 2);
