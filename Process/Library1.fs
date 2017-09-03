@@ -52,14 +52,25 @@ let convert amount fromId toId =
 
 let transactionTypeMap ttype =
  match ttype with
- | 82 -> "Deposit"
- | 115 -> "Withdrawal"
+ | 63 | 26 | 28 | 269 -> "Bank Reversal"
+ | 82 | 83|  84 -> "Card Deposit"
+ | 115 -> "Card Withdrawal"
+ | 230 | 231 -> "Card Reversal"
+ | 25 | 27| 29 -> "Bank Deposit"
+ | 102 | 62 | 103 -> "Bank Withdrawal"
+ | 39 -> "Cheque/Verisign/Paypal"
+ | 239 - > "Billing Japan"
+ | 234 | 236 -> "Netbanx Deposit"
+ | 273 -> "NETS Deposit"
+ | 275 -> "Billpay Deposit"
+ | 11 -> "BPay deposit"
+ | 270 -> "PA Payout"
  | _ -> "Other"
 
 let private transactions = 
   query {
    for transaction in dc.LedgerTransactions do
-   where (transaction.LedgerTransactionDateTime >= DateTime.UtcNow.Subtract(TimeSpan.FromDays(28.00)))
+   where (transaction.LedgerTransactionDateTime >= DateTime.UtcNow.Subtract(TimeSpan.FromDays(7.00)))
    sortByDescending transaction.LedgerTransactionDateTime
    select transaction
   } 

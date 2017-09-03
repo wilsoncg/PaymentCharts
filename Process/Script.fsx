@@ -27,3 +27,4 @@ let chart =
 //|> Chart.Show
 // Define your library scripting code here
 
+// fsi --exec Script.fsx
