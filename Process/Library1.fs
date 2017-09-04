@@ -2,17 +2,26 @@
 
 open System
 open FSharp.Data.TypeProviders
+open FSharp.Configuration
 
 [<Literal>]
 let connStringName = "PaymentsData"
+[<Literal>]
+let schemaFile = "FullDbMap.dbml"
 
 type internal DB = 
  SqlDataConnection<
-    ConnectionStringName=connStringName, 
+    ConnectionStringName=connStringName,
+    LocalSchemaFile=schemaFile,
+    ForceUpdate=false,
     Functions=false, 
     StoredProcedures=false, 
     Pluralize=true>
 let private dc = DB.GetDataContext()
+
+type Settings = AppSettings<"app.config">
+let path = System.IO.Path.Combine [|__SOURCE_DIRECTORY__ ; "App.config" |]
+Settings.SelectExecutableFile path
 
 let search map = Option.bind (fun k -> Map.tryFind k map)
 type private Currency = { BaseCurrencyId : int; TermsCurrencyId : int; Rate : decimal; }
@@ -83,7 +92,7 @@ let transactionTypeMap ttype =
 let private transactions = 
   query {
    for transaction in dc.LedgerTransactions do
-   where (transaction.LedgerTransactionDateTime >= DateTime.UtcNow.Subtract(TimeSpan.FromDays(7.00)))
+   where (transaction.LedgerTransactionDateTime >= DateTime.UtcNow.Subtract(TimeSpan.FromDays(float Settings.NumDays)))
    sortByDescending transaction.LedgerTransactionDateTime
    select transaction
   } 
