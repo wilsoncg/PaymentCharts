@@ -3,7 +3,15 @@
 open System
 open FSharp.Data.TypeProviders
 
-type internal DB = SqlDataConnection<"Data Source=(localdb)\MSSqlLocalDB;Initial Catalog=PaymentsData;Integrated Security=SSPI;", Pluralize=true>
+[<Literal>]
+let connStringName = "PaymentsData"
+
+type internal DB = 
+ SqlDataConnection<
+    ConnectionStringName=connStringName, 
+    Functions=false, 
+    StoredProcedures=false, 
+    Pluralize=true>
 let private dc = DB.GetDataContext()
 
 let search map = Option.bind (fun k -> Map.tryFind k map)
@@ -25,7 +33,7 @@ let private convertCurrency fromCurrency toCurrency amount =
  let direct fromId toId c =
     (c.BaseCurrencyId = fromId && c.TermsCurrencyId = toId)
  let invert fromId toId c =
-    (c.TermsCurrencyId = fromId & c.BaseCurrencyId = toId)
+    (c.TermsCurrencyId = fromId && c.BaseCurrencyId = toId)
  let cross fromId toId c =
     (c.BaseCurrencyId = fromId)// && c1.TermsCurrencyId = c2.BaseCurrencyId && c2.TermsCurrencyId = toId)
  let invertCross fromId toId c =
@@ -34,14 +42,19 @@ let private convertCurrency fromCurrency toCurrency amount =
  let converted =
   match List.tryFind (direct fromCurrency toCurrency) rates with
   | Some r -> amount * r.Rate 
-  | None -> match List.tryFind (invert fromCurrency toCurrency) rates with
+  | None -> 
+    match List.tryFind (invert fromCurrency toCurrency) rates with
     | Some s -> amount / s.Rate
-    | None -> match List.tryFind (invertCross fromCurrency toCurrency) rates with
-        | Some t -> match List.tryFind (direct toCurrency t.BaseCurrencyId) rates with
-                    | Some u -> amount / u.Rate / t.Rate
-                    | None -> 0m
-        | None -> match List.tryFind (cross fromCurrency toCurrency) rates with
-            | Some v -> match List.tryFind (direct toCurrency v.TermsCurrencyId ) rates with
+    | None -> 
+        match List.tryFind (invertCross fromCurrency toCurrency) rates with
+        | Some t -> 
+            match List.tryFind (direct toCurrency t.BaseCurrencyId) rates with
+            | Some u -> amount / u.Rate / t.Rate
+            | None -> 0m
+        | None -> 
+            match List.tryFind (cross fromCurrency toCurrency) rates with
+            | Some v -> 
+                match List.tryFind (direct toCurrency v.TermsCurrencyId ) rates with
                 | Some w -> amount * v.Rate / w.Rate
                 | None -> 0m
             | None -> 0m
@@ -59,7 +72,7 @@ let transactionTypeMap ttype =
  | 25 | 27| 29 -> "Bank Deposit"
  | 102 | 62 | 103 -> "Bank Withdrawal"
  | 39 -> "Cheque/Verisign/Paypal"
- | 239 - > "Billing Japan"
+ | 239 -> "Billing Japan"
  | 234 | 236 -> "Netbanx Deposit"
  | 273 -> "NETS Deposit"
  | 275 -> "Billpay Deposit"
