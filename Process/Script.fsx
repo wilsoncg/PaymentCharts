@@ -2,11 +2,15 @@
 // for more guidance on F# programming.
 #r "../packages/FSharp.Plotly.1.0.2/lib/net40/FSharp.Plotly.dll"
 #r "../packages/FSharp.Data.TypeProviders.5.0.0.2/lib/net40/FSharp.Data.TypeProviders.dll"
+#r "../packages/FSharp.Configuration.1.3.0/lib/net45/FSharp.Configuration.dll"
 #r "System.Data.Linq"
 
 #load "Library1.fs"
 
 open FSharp.Plotly
+open FSharp.Configuration
+
+//type Settings = AppSettings<"app.config">
 
 let layout =
     Layout()

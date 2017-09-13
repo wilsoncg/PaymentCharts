@@ -2,9 +2,26 @@
 
 open System
 open FSharp.Data.TypeProviders
+open FSharp.Configuration
 
-type internal DB = SqlDataConnection<"Data Source=(localdb)\MSSqlLocalDB;Initial Catalog=PaymentsData;Integrated Security=SSPI;", Pluralize=true>
+[<Literal>]
+let connStringName = "PaymentsData"
+[<Literal>]
+let schemaFile = "FullDbMap.dbml"
+
+type internal DB = 
+ SqlDataConnection<
+    ConnectionStringName=connStringName,
+    LocalSchemaFile=schemaFile,
+    ForceUpdate=false,
+    Functions=false, 
+    StoredProcedures=false, 
+    Pluralize=true>
 let private dc = DB.GetDataContext()
+
+type Settings = AppSettings<"app.config">
+let path = System.IO.Path.Combine [|__SOURCE_DIRECTORY__ ; "App.config" |]
+Settings.SelectExecutableFile path
 
 let search map = Option.bind (fun k -> Map.tryFind k map)
 type Currency = { BaseCurrencyId : int; TermsCurrencyId : int; Rate : decimal; }
