@@ -13,10 +13,10 @@ namespace Process.UnitTests
             var stacks = Test.stacks.ToList();
 
             Assert.IsTrue(stacks.Any(), "stacks empty");
-            Assert.IsTrue(stacks.Count == 2);
+            Assert.AreEqual(3, stacks.Count);
 
-            var deposits = stacks.Where(x => x.Name == "Deposit");
-            var withdrawals = stacks.Where(x => x.Name == "Withdrawal");
+            var deposits = stacks.Where(x => x.Name == "Card Deposit");
+            var withdrawals = stacks.Where(x => x.Name == "Card Withdrawal");
 
             Assert.AreEqual(1, deposits.Count());
             Assert.AreEqual(2655 + 220, deposits.Sum(x => x.Amounts.Sum()));
@@ -36,6 +36,9 @@ namespace Process.UnitTests
 
             var usdToAud = decimal.Round(Test.convert(amount, 11, 1), 5);
             Assert.AreEqual(1.26598m, usdToAud);
+
+            var audTo24 = decimal.Round(Test.convert(amount, 1, 24), 5);
+            Assert.AreEqual(2.82689m, audTo24);
         }
     }
 }
