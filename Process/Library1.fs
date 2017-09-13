@@ -7,48 +7,45 @@ type internal DB = SqlDataConnection<"Data Source=(localdb)\MSSqlLocalDB;Initial
 let private dc = DB.GetDataContext()
 
 let search map = Option.bind (fun k -> Map.tryFind k map)
-type private Currency = { BaseCurrencyId : int; TermsCurrencyId : int; Rate : decimal; }
-let private convertCurrency fromCurrency toCurrency amount =
- let rates =
+type Currency = { BaseCurrencyId : int; TermsCurrencyId : int; Rate : decimal; }
+let private curr b t r =
+  { BaseCurrencyId = b; TermsCurrencyId = t; Rate = r }
+
+let private ratesLazy = lazy (
     query {
         for r in dc.FXRates do
         select r
         }
-    |> Seq.map (fun r -> 
-        { 
-            BaseCurrencyId = r.BaseCurrencyId; 
-            TermsCurrencyId = r.TermsCurrencyId; 
-            Rate = r.EndOfDayRate 
-        })
-    |> Seq.toList
+    |> Seq.toList)
 
- let direct fromId toId c =
-    (c.BaseCurrencyId = fromId && c.TermsCurrencyId = toId)
- let invert fromId toId c =
-    (c.TermsCurrencyId = fromId & c.BaseCurrencyId = toId)
- let cross fromId toId c =
-    (c.BaseCurrencyId = fromId)// && c1.TermsCurrencyId = c2.BaseCurrencyId && c2.TermsCurrencyId = toId)
- let invertCross fromId toId c =
-    (c.TermsCurrencyId = fromId)// && c1.BaseCurrencyId = c2.TermsCurrencyId && c2.BaseCurrencyId = toId)
+let precomputed = 
+  let rates = ratesLazy.Force()
+  let crosses =
+      [for x in rates do
+       for y in rates do
+       if y.BaseCurrencyId = x.TermsCurrencyId 
+       then 
+        yield curr x.BaseCurrencyId y.TermsCurrencyId (1m * x.EndOfDayRate * y.EndOfDayRate)
+        yield curr y.TermsCurrencyId x.BaseCurrencyId (1m / (1m * x.EndOfDayRate * y.EndOfDayRate))
+      ]
+  let directs =
+      [for r in rates do 
+       yield curr r.BaseCurrencyId r.TermsCurrencyId r.EndOfDayRate
+       yield curr r.TermsCurrencyId r.BaseCurrencyId (1m / r.EndOfDayRate)
+      ]
+  List.append crosses directs
 
- let converted =
-  match List.tryFind (direct fromCurrency toCurrency) rates with
-  | Some r -> amount * r.Rate 
-  | None -> match List.tryFind (invert fromCurrency toCurrency) rates with
-    | Some s -> amount / s.Rate
-    | None -> match List.tryFind (invertCross fromCurrency toCurrency) rates with
-        | Some t -> match List.tryFind (direct toCurrency t.BaseCurrencyId) rates with
-                    | Some u -> amount / u.Rate / t.Rate
-                    | None -> 0m
-        | None -> match List.tryFind (cross fromCurrency toCurrency) rates with
-            | Some v -> match List.tryFind (direct toCurrency v.TermsCurrencyId ) rates with
-                | Some w -> amount * v.Rate / w.Rate
-                | None -> 0m
-            | None -> 0m
- converted
+let private matchCurrency baseC termsC c = c.BaseCurrencyId = baseC && c.TermsCurrencyId = termsC
+let private convertCurrency fromCurrency toCurrency amount =
+  precomputed
+  |>
+  List.tryFind (fun c -> c.BaseCurrencyId = fromCurrency && c.TermsCurrencyId = toCurrency)
+  |> Option.map (fun s-> amount * s.Rate)
 
 let convert amount fromId toId = 
-    convertCurrency fromId toId amount 
+   match convertCurrency fromId toId amount with
+   | Some c -> c
+   | None -> 0m
 
 let transactionTypeMap ttype =
  match ttype with
@@ -59,7 +56,7 @@ let transactionTypeMap ttype =
  | 25 | 27| 29 -> "Bank Deposit"
  | 102 | 62 | 103 -> "Bank Withdrawal"
  | 39 -> "Cheque/Verisign/Paypal"
- | 239 - > "Billing Japan"
+ | 239 -> "Billing Japan"
  | 234 | 236 -> "Netbanx Deposit"
  | 273 -> "NETS Deposit"
  | 275 -> "Billpay Deposit"
@@ -70,7 +67,7 @@ let transactionTypeMap ttype =
 let private transactions = 
   query {
    for transaction in dc.LedgerTransactions do
-   where (transaction.LedgerTransactionDateTime >= DateTime.UtcNow.Subtract(TimeSpan.FromDays(7.00)))
+   where (transaction.LedgerTransactionDateTime >= DateTime.UtcNow.Subtract(TimeSpan.FromDays(31.00)))
    sortByDescending transaction.LedgerTransactionDateTime
    select transaction
   } 
