@@ -5,26 +5,28 @@
 #r "../packages/FSharp.Configuration.1.3.0/lib/net45/FSharp.Configuration.dll"
 #r "System.Data.Linq"
 
-#load "Library1.fs"
+
+#load "ChartSettings.fs"
+#load "Transactions.fs"
 
 open FSharp.Plotly
-open FSharp.Configuration
+open System.Web.UI.WebControls
 
-type Settings = AppSettings<"app.config">
+let numDays = ChartSettings.numDays
+let dc = ChartSettings.PaymentsDb.GetDataContext(ChartSettings.Settings.ConnectionStrings.PaymentsData, 300)
 
 let layout =
     Layout()
-
-// [(deposit, [(2, deposit, 220); (1, deposit, 2655); ... ], withdrawal [(1, withdrawal, 110); ..] )]
-
+    
 let stacks =
- Test.stacks
+ Transactions.getStacks numDays dc
  |> Seq.map (fun t ->
         Chart.StackedBar(t.Days, t.Amounts, Name= sprintf "%A" t.Name))
 
 let chart = 
   stacks
-  |> Chart.Combine
+  |> Chart.Combine  
+  |> Chart.withLayout(Options.Layout(Title="Last 7 days transactions"))
   |> Chart.Show
 
 //GenericChart.ofTraceObject sampleChart layout

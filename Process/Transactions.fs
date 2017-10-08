@@ -1,40 +1,24 @@
-﻿module Test
+﻿module Transactions
 
 open System
 open System.Linq
 open FSharp.Data.Sql
-open FSharp.Configuration
-
-[<Literal>]
-let connStringName = "PaymentsData"
-[<Literal>]
-let schemaFile = "FullDbMap.dbml"
-
-type internal DB = 
- SqlDataProvider<
-    ConnectionStringName=connStringName,
-    TableNames="FXRate,LedgerTransaction">
-let private dc = DB.GetDataContext(300).Dbo
-
-FSharp.Data.Sql.Common.QueryEvents.SqlQueryEvent |> Event.add (printfn "Executing SQL: %Omsms")
-
-type Settings = AppSettings<"app.config">
-let path = System.IO.Path.Combine [|__SOURCE_DIRECTORY__ ; "App.config" |]
-Settings.SelectExecutableFile path
+open FSharp.Data.Sql.Runtime
+open ChartSettings
 
 type Currency = { BaseCurrencyId : int; TermsCurrencyId : int; Rate : decimal; }
 let private curr b t r =
   { BaseCurrencyId = b; TermsCurrencyId = t; Rate = r }
 
-let private ratesLazy = lazy (
+let private ratesQuery (dc:PaymentsDb.dataContext) = lazy (
     query {
-        for r in dc.FxRate do
-        select r
+        for r in dc.Dbo.FxRate do
+        select (r)
         }
     |> Seq.toList)
 
-let precomputed = 
-  let rates = ratesLazy.Force()
+let precomputed dc = 
+  let rates = (ratesQuery dc).Force()
   let crosses =
       [for x in rates do
        for y in rates do
@@ -50,14 +34,14 @@ let precomputed =
       ]
   List.append crosses directs
 
-let private convertCurrency fromCurrency toCurrency amount =
-  precomputed
+let private convertCurrency dc fromCurrency toCurrency amount =
+  precomputed dc
   |>
   List.tryFind (fun c -> c.BaseCurrencyId = fromCurrency && c.TermsCurrencyId = toCurrency)
   |> Option.map (fun s-> amount * s.Rate)
 
-let convert amount fromId toId = 
-   match convertCurrency fromId toId amount with
+let convert dc amount fromId toId = 
+   match convertCurrency dc fromId toId amount with
    | Some c -> Math.Round(c, 2) 
    | None -> 0m
 
@@ -78,12 +62,12 @@ let transactionTypeMap ttype =
  | 270 -> "PA Payout"
  | _ -> "Other"
 
-let private transactions = 
+let private transactions numDays (dc:PaymentsDb.dataContext) = 
   let typeIds = [|63;26;28;269;82;83;84;115;230;231;25;27;29;102;62;103;39;234;236;273;275;11;270|]
   let q =
       query {
-       for transaction in dc.LedgerTransaction do
-       where (transaction.LedgerTransactionDateTime >= DateTime.UtcNow.Subtract(TimeSpan.FromDays(3.00)) && 
+       for transaction in dc.Dbo.LedgerTransaction do
+       where (transaction.LedgerTransactionDateTime >= DateTime.UtcNow.Subtract(TimeSpan.FromDays(float numDays)) && 
                 typeIds.Contains(transaction.LedgerTransactionTypeId))
        sortByDescending transaction.LedgerTransactionDateTime
        select transaction
@@ -103,7 +87,7 @@ let private transactions =
         |> Seq.fold (fun acc tran -> 
         match tran.CurrencyId with
         | 6 -> acc + tran.Amount
-        | _ -> acc + convert tran.Amount tran.CurrencyId 6
+        | _ -> acc + convert dc tran.Amount tran.CurrencyId 6
         ) 0m
     day, stype, sumAmount)
 
@@ -116,8 +100,8 @@ let getFrom list selector =
   |> Seq.map selector
 
 type StackInfo = { Name : string; Days : seq<int>; Amounts : seq<decimal> }
-let stacks =
-    transactions
+let getStacks numDays dataContext =
+    transactions numDays dataContext
     |> Seq.groupBy (fun t -> second t)
     |> Seq.map (fun t -> 
         let trans = snd t

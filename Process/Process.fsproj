@@ -52,10 +52,11 @@
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
-    <Compile Include="Library1.fs" />
     <None Include="Script.fsx" />
     <Content Include="packages.config" />
     <Content Include="App.config" />
+    <Compile Include="ChartSettings.fs" />
+    <Compile Include="Transactions.fs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="FSharp.Care">

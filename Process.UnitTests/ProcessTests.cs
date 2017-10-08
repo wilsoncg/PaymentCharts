@@ -10,7 +10,7 @@ namespace Process.UnitTests
         [TestMethod]
         public void TestStacksAreCorrect()
         {
-            var stacks = Test.stacks.ToList();
+            var stacks = Transactions.getStacks(365).ToList();
 
             Assert.IsTrue(stacks.Any(), "stacks empty");
             Assert.AreEqual(3, stacks.Count);
@@ -28,16 +28,16 @@ namespace Process.UnitTests
         [TestMethod]
         public void TestCurrencyMapping()
         {
-            var rates = Test.precomputed.ToList();
+            var rates = Transactions.precomputed.ToList();
 
             const int amount = 1;
-            var audToUsd = Test.convert(amount, 1, 11);
+            var audToUsd = Transactions.convert(amount, 1, 11);
             Assert.AreEqual(0.7899m, audToUsd);
 
-            var usdToAud = decimal.Round(Test.convert(amount, 11, 1), 5);
+            var usdToAud = decimal.Round(Transactions.convert(amount, 11, 1), 5);
             Assert.AreEqual(1.26598m, usdToAud);
 
-            var audTo24 = decimal.Round(Test.convert(amount, 1, 24), 5);
+            var audTo24 = decimal.Round(Transactions.convert(amount, 1, 24), 5);
             Assert.AreEqual(2.82689m, audTo24);
         }
     }
