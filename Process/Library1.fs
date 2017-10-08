@@ -1,7 +1,8 @@
 ﻿module Test
 
 open System
-open FSharp.Data.TypeProviders
+open System.Linq
+open FSharp.Data.Sql
 open FSharp.Configuration
 
 [<Literal>]
@@ -10,29 +11,24 @@ let connStringName = "PaymentsData"
 let schemaFile = "FullDbMap.dbml"
 
 type internal DB = 
- SqlDataConnection<
+ SqlDataProvider<
     ConnectionStringName=connStringName,
-    LocalSchemaFile=schemaFile,
-    ForceUpdate=false,
-    Functions=false, 
-    StoredProcedures=false, 
-    Pluralize=true>
-let private dc = DB.GetDataContext()
-dc.DataContext.ObjectTrackingEnabled <- false
-dc.DataContext.CommandTimeout <- 300
+    TableNames="FXRate,LedgerTransaction">
+let private dc = DB.GetDataContext(300).Dbo
+
+FSharp.Data.Sql.Common.QueryEvents.SqlQueryEvent |> Event.add (printfn "Executing SQL: %Omsms")
 
 type Settings = AppSettings<"app.config">
 let path = System.IO.Path.Combine [|__SOURCE_DIRECTORY__ ; "App.config" |]
 Settings.SelectExecutableFile path
 
-let search map = Option.bind (fun k -> Map.tryFind k map)
 type Currency = { BaseCurrencyId : int; TermsCurrencyId : int; Rate : decimal; }
 let private curr b t r =
   { BaseCurrencyId = b; TermsCurrencyId = t; Rate = r }
 
 let private ratesLazy = lazy (
     query {
-        for r in dc.FXRates do
+        for r in dc.FxRate do
         select r
         }
     |> Seq.toList)
@@ -54,7 +50,6 @@ let precomputed =
       ]
   List.append crosses directs
 
-let private matchCurrency baseC termsC c = c.BaseCurrencyId = baseC && c.TermsCurrencyId = termsC
 let private convertCurrency fromCurrency toCurrency amount =
   precomputed
   |>
@@ -84,16 +79,12 @@ let transactionTypeMap ttype =
  | _ -> "Other"
 
 let private transactions = 
-  let typeQuery = 
-    query { 
-        for id in [63;26;28;269;82;83;84;115;230;231;25;27;29;102;62;103;39;234;236;273;275;11;270] do
-        select id
-    }
   let typeIds = [|63;26;28;269;82;83;84;115;230;231;25;27;29;102;62;103;39;234;236;273;275;11;270|]
   let q =
       query {
-       for transaction in dc.LedgerTransactions do
-       where (transaction.LedgerTransactionDateTime >= DateTime.UtcNow.Subtract(TimeSpan.FromDays(3.00)))
+       for transaction in dc.LedgerTransaction do
+       where (transaction.LedgerTransactionDateTime >= DateTime.UtcNow.Subtract(TimeSpan.FromDays(3.00)) && 
+                typeIds.Contains(transaction.LedgerTransactionTypeId))
        sortByDescending transaction.LedgerTransactionDateTime
        select transaction
       } |> Seq.toList

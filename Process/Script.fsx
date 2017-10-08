@@ -1,7 +1,7 @@
 ﻿// Learn more about F# at http://fsharp.org. See the 'F# Tutorial' project
 // for more guidance on F# programming.
 #r "../packages/FSharp.Plotly.1.0.2/lib/net40/FSharp.Plotly.dll"
-#r "../packages/FSharp.Data.TypeProviders.5.0.0.2/lib/net40/FSharp.Data.TypeProviders.dll"
+#r "../packages/SQLProvider.1.1.11/lib/FSharp.Data.SqlProvider.dll"
 #r "../packages/FSharp.Configuration.1.3.0/lib/net45/FSharp.Configuration.dll"
 #r "System.Data.Linq"
 
@@ -10,7 +10,7 @@
 open FSharp.Plotly
 open FSharp.Configuration
 
-//type Settings = AppSettings<"app.config">
+type Settings = AppSettings<"app.config">
 
 let layout =
     Layout()
