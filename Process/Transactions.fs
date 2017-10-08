@@ -17,6 +17,8 @@ type internal DataConnection =
     StoredProcedures=false, 
     Pluralize=true>
 let private dc = DataConnection.GetDataContext()
+dc.DataContext.ObjectTrackingEnabled <- false
+dc.DataContext.CommandTimeout <- 300
 
 type Currency = { BaseCurrencyId : int; TermsCurrencyId : int; Rate : decimal; }
 let private curr b t r =
@@ -55,7 +57,7 @@ let private convertCurrency fromCurrency toCurrency amount =
 
 let convert amount fromId toId = 
    match convertCurrency fromId toId amount with
-   | Some c -> c
+   | Some c -> Math.Round(c, 2) 
    | None -> 0m
 
 let transactionTypeMap ttype =
@@ -76,12 +78,21 @@ let transactionTypeMap ttype =
  | _ -> "Other"
 
 let private transactions numDays = 
-  query {
-   for transaction in dc.LedgerTransactions do
-   where (transaction.LedgerTransactionDateTime >= DateTime.UtcNow.Subtract(TimeSpan.FromDays(float numDays)))
-   sortByDescending transaction.LedgerTransactionDateTime
-   select transaction
-  } 
+  let typeQuery = 
+    query { 
+        for id in [63;26;28;269;82;83;84;115;230;231;25;27;29;102;62;103;39;234;236;273;275;11;270] do
+        select id
+    }
+  let typeIds = [|63;26;28;269;82;83;84;115;230;231;25;27;29;102;62;103;39;234;236;273;275;11;270|]
+  let q =
+      query {
+       for transaction in dc.LedgerTransactions do
+       where (transaction.LedgerTransactionDateTime >= DateTime.UtcNow.Subtract(TimeSpan.FromDays(float numDays)))
+       sortByDescending transaction.LedgerTransactionDateTime
+       select transaction
+      } |> Seq.toList
+
+  q 
   |> Seq.groupBy (fun tran -> tran.LedgerTransactionDateTime.Day, tran.LedgerTransactionTypeId)
   |> Seq.map (fun groupedTransactions -> 
     let day = 
