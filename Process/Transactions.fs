@@ -1,15 +1,14 @@
-﻿module Test
+﻿module Transactions
 
 open System
 open FSharp.Data.TypeProviders
-open FSharp.Configuration
 
 [<Literal>]
 let connStringName = "PaymentsData"
 [<Literal>]
 let schemaFile = "FullDbMap.dbml"
 
-type internal DB = 
+type internal DataConnection = 
  SqlDataConnection<
     ConnectionStringName=connStringName,
     LocalSchemaFile=schemaFile,
@@ -17,13 +16,8 @@ type internal DB =
     Functions=false, 
     StoredProcedures=false, 
     Pluralize=true>
-let private dc = DB.GetDataContext()
+let private dc = DataConnection.GetDataContext()
 
-type Settings = AppSettings<"app.config">
-let path = System.IO.Path.Combine [|__SOURCE_DIRECTORY__ ; "App.config" |]
-Settings.SelectExecutableFile path
-
-let search map = Option.bind (fun k -> Map.tryFind k map)
 type Currency = { BaseCurrencyId : int; TermsCurrencyId : int; Rate : decimal; }
 let private curr b t r =
   { BaseCurrencyId = b; TermsCurrencyId = t; Rate = r }
@@ -81,10 +75,10 @@ let transactionTypeMap ttype =
  | 270 -> "PA Payout"
  | _ -> "Other"
 
-let private transactions = 
+let private transactions numDays = 
   query {
    for transaction in dc.LedgerTransactions do
-   where (transaction.LedgerTransactionDateTime >= DateTime.UtcNow.Subtract(TimeSpan.FromDays(31.00)))
+   where (transaction.LedgerTransactionDateTime >= DateTime.UtcNow.Subtract(TimeSpan.FromDays(float numDays)))
    sortByDescending transaction.LedgerTransactionDateTime
    select transaction
   } 
@@ -114,8 +108,8 @@ let getFrom list selector =
   |> Seq.map selector
 
 type StackInfo = { Name : string; Days : seq<int>; Amounts : seq<decimal> }
-let stacks =
-    transactions
+let getStacks numDays =
+    transactions numDays
     |> Seq.groupBy (fun t -> second t)
     |> Seq.map (fun t -> 
         let trans = snd t
