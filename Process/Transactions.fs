@@ -10,15 +10,13 @@ type Currency = { BaseCurrencyId : int; TermsCurrencyId : int; Rate : decimal; }
 let private curr b t r =
   { BaseCurrencyId = b; TermsCurrencyId = t; Rate = r }
 
-let private ratesQuery (dc:PaymentsDb.dataContext) = lazy (
+let currencyList (dc:PaymentsDb.dataContext) = 
+  let rates = 
     query {
         for r in dc.Dbo.FxRate do
         select (r)
         }
-    |> Seq.toList)
-
-let precomputed dc = 
-  let rates = (ratesQuery dc).Force()
+    |> Seq.toList
   let crosses =
       [for x in rates do
        for y in rates do
@@ -34,14 +32,13 @@ let precomputed dc =
       ]
   List.append crosses directs
 
-let private convertCurrency dc fromCurrency toCurrency amount =
-  precomputed dc
-  |>
-  List.tryFind (fun c -> c.BaseCurrencyId = fromCurrency && c.TermsCurrencyId = toCurrency)
+let private convertCurrency list fromCurrency toCurrency amount =
+  list
+  |> List.tryFind (fun c -> c.BaseCurrencyId = fromCurrency && c.TermsCurrencyId = toCurrency)
   |> Option.map (fun s-> amount * s.Rate)
 
-let convert dc amount fromId toId = 
-   match convertCurrency dc fromId toId amount with
+let convert list amount fromId toId = 
+   match convertCurrency list fromId toId amount with
    | Some c -> Math.Round(c, 2) 
    | None -> 0m
 
@@ -64,6 +61,7 @@ let transactionTypeMap ttype =
 
 let private transactions numDays (dc:PaymentsDb.dataContext) = 
   let typeIds = [|63;26;28;269;82;83;84;115;230;231;25;27;29;102;62;103;39;234;236;273;275;11;270|]
+  let currencies = currencyList dc
   let q =
       query {
        for transaction in dc.Dbo.LedgerTransaction do
@@ -87,7 +85,7 @@ let private transactions numDays (dc:PaymentsDb.dataContext) =
         |> Seq.fold (fun acc tran -> 
         match tran.CurrencyId with
         | 6 -> acc + tran.Amount
-        | _ -> acc + convert dc tran.Amount tran.CurrencyId 6
+        | _ -> acc + convert currencies tran.Amount tran.CurrencyId 6
         ) 0m
     day, stype, sumAmount)
 
