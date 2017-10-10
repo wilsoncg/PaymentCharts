@@ -59,21 +59,7 @@ let transactionTypeMap ttype =
  | 270 -> "PA Payout"
  | _ -> "Other"
 
-let private transactions numDays (dc:PaymentsDb.dataContext) = 
-  let typeIds = [|63;26;28;269;82;83;84;115;230;231;25;27;29;102;62;103;39;234;236;273;275;11;270|]
-  let currencies = currencyList dc
-  let q =
-      query {
-       for transaction in dc.Dbo.LedgerTransaction do
-       where (transaction.LedgerTransactionDateTime >= DateTime.UtcNow.Subtract(TimeSpan.FromDays(float numDays)) && 
-                typeIds.Contains(transaction.LedgerTransactionTypeId))
-       sortByDescending transaction.LedgerTransactionDateTime
-       select transaction
-      } |> Seq.toList
-
-  q 
-  |> Seq.groupBy (fun tran -> tran.LedgerTransactionDateTime.Day, tran.LedgerTransactionTypeId)
-  |> Seq.map (fun groupedTransactions -> 
+let private groupedToTuple groupedTransactions currencies =
     let day = 
         match fst groupedTransactions with
         | (tday, _) -> tday
@@ -82,12 +68,34 @@ let private transactions numDays (dc:PaymentsDb.dataContext) =
         | (_, ttype) -> transactionTypeMap ttype
     let sumAmount = 
         snd groupedTransactions 
-        |> Seq.fold (fun acc tran -> 
+        |> Seq.fold (fun acc (tran:PaymentsDb.dataContext.``dbo.LedgerTransactionEntity``) -> 
         match tran.CurrencyId with
         | 6 -> acc + tran.Amount
         | _ -> acc + convert currencies tran.Amount tran.CurrencyId 6
         ) 0m
-    day, stype, sumAmount)
+    day, stype, sumAmount
+
+let private lastNDaysQuery numDays (dc:PaymentsDb.dataContext) =
+    let typeIds = [|63;26;28;269;82;83;84;115;230;231;25;27;29;102;62;103;39;234;236;273;275;11;270|]
+    query {
+    for transaction in dc.Dbo.LedgerTransaction do
+    where (transaction.LedgerTransactionDateTime >= DateTime.UtcNow.Subtract(TimeSpan.FromDays(float numDays)) && 
+            typeIds.Contains(transaction.LedgerTransactionTypeId))
+    sortByDescending transaction.LedgerTransactionDateTime
+    select transaction
+    } |> Seq.toList
+
+let private lastNDaysTransactions numDays (dc:PaymentsDb.dataContext) = 
+ let currencies = currencyList dc
+ lastNDaysQuery numDays dc 
+  |> Seq.groupBy (fun tran -> tran.LedgerTransactionDateTime.Day, tran.LedgerTransactionTypeId)
+  |> Seq.map (fun groupedTransactions -> groupedToTuple groupedTransactions currencies)
+
+let private last24hoursTransactions (dc:PaymentsDb.dataContext) =
+ let currencies = currencyList dc
+ lastNDaysQuery 1 dc
+ |> Seq.groupBy (fun tran -> tran.LedgerTransactionDateTime.Hour, tran.LedgerTransactionTypeId)
+ |> Seq.map (fun groupedTrans -> groupedToTuple groupedTrans currencies)
 
 let first (a, _, _) = a
 let second (_, b, _) = b
@@ -97,15 +105,27 @@ let getFrom list selector =
   list
   |> Seq.map selector
 
-type StackInfo = { Name : string; Days : seq<int>; Amounts : seq<decimal> }
-let getStacks numDays dataContext =
-    transactions numDays dataContext
+type DaysStackInfo = { Name : string; Days : seq<int>; Amounts : seq<decimal> }
+type HoursStackInfo = { Name : string; Hours : seq<int>; Amounts : seq<decimal> }
+let getDaysStacks numDays dataContext =
+    lastNDaysTransactions numDays dataContext
     |> Seq.groupBy (fun t -> second t)
     |> Seq.map (fun t -> 
         let trans = snd t
         { 
             Name = fst t; 
             Days = getFrom trans first;
+            Amounts = getFrom trans third;
+        })
+
+let getHoursStacks dataContext =
+    last24hoursTransactions dataContext
+    |> Seq.groupBy (fun t -> second t)
+    |> Seq.map (fun t -> 
+        let trans = snd t
+        { 
+            Name = fst t; 
+            Hours = getFrom trans first;
             Amounts = getFrom trans third;
         })
   

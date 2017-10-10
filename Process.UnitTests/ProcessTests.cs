@@ -10,7 +10,7 @@ namespace Process.UnitTests
         [TestMethod]
         public void TestStacksAreCorrect()
         {
-            var stacks = Transactions.getStacks(365).ToList();
+            var stacks = Transactions.getDaysStacks(365).ToList();
 
             Assert.IsTrue(stacks.Any(), "stacks empty");
             Assert.AreEqual(3, stacks.Count);
