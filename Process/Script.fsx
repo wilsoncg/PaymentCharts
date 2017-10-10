@@ -1,6 +1,6 @@
 ﻿// Learn more about F# at http://fsharp.org. See the 'F# Tutorial' project
 // for more guidance on F# programming.
-#r "../packages/FSharp.Plotly.1.0.2/lib/net40/FSharp.Plotly.dll"
+#r "../packages/FSharp.Plotly.1.0.3/lib/net45/FSharp.Plotly.dll"
 #r "../packages/SQLProvider.1.1.11/lib/FSharp.Data.SqlProvider.dll"
 #r "../packages/FSharp.Configuration.1.3.0/lib/net45/FSharp.Configuration.dll"
 #r "System.Data.Linq"
@@ -14,22 +14,24 @@ open System.Web.UI.WebControls
 let numDays = ChartSettings.numDays
 let dc = ChartSettings.PaymentsDb.GetDataContext(ChartSettings.Settings.ConnectionStrings.PaymentsData, 300)
 
-let layout =
- Layout()
- 
+let path1 = System.IO.Path.Combine [| ChartSettings.filePath ; "last7days.html" |]
+let path2 = System.IO.Path.Combine [| ChartSettings.filePath ; "last24hours.html" |]
+
 let daysChart = 
   Transactions.getDaysStacks numDays dc
   |> Seq.map (fun t -> Chart.StackedBar(t.Days, t.Amounts, Name= sprintf "%A" t.Name))
   |> Chart.Combine  
-  |> Chart.withLayout(Options.Layout(Title="Last 7 days transactions"))
-  |> Chart.Show
+  |> Chart.withTitle "Last 7 days transactions"
+  |> Chart.withSize (1200,900)
+  |> Chart.SaveHtmlAs "last7days" 
 
 let last24hChart = 
   Transactions.getHoursStacks dc
   |> Seq.map (fun t -> Chart.StackedColumn(t.Hours, t.Amounts, Name= sprintf "%A" t.Name))
   |> Chart.Combine  
-  |> Chart.withLayout(Options.Layout(Title="Last 24 hours transactions"))
-  |> Chart.Show
+  |> Chart.withTitle "Last 24 hours transactions"
+  |> Chart.withSize (1200,900)
+  |> Chart.SaveHtmlAs "last24hours"
 
 //GenericChart.ofTraceObject sampleChart layout
 //|> Chart.Show
