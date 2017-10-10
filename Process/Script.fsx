@@ -14,14 +14,11 @@ open System.Web.UI.WebControls
 let numDays = ChartSettings.numDays
 let dc = ChartSettings.PaymentsDb.GetDataContext(ChartSettings.Settings.ConnectionStrings.PaymentsData, 300)
 
-let path1 = System.IO.Path.Combine [| ChartSettings.filePath ; "last7days.html" |]
-let path2 = System.IO.Path.Combine [| ChartSettings.filePath ; "last24hours.html" |]
-
 let daysChart = 
   Transactions.getDaysStacks numDays dc
   |> Seq.map (fun t -> Chart.StackedBar(t.Days, t.Amounts, Name= sprintf "%A" t.Name))
   |> Chart.Combine  
-  |> Chart.withTitle "Last 7 days transactions"
+  |> Chart.withTitle (sprintf "Last %i days transactions" numDays)
   |> Chart.withSize (1200,900)
   |> Chart.SaveHtmlAs "last7days" 
 

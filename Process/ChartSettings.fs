@@ -7,7 +7,6 @@ type Settings = AppSettings<"app.config">
 let path = System.IO.Path.Combine [|__SOURCE_DIRECTORY__ ; "bin" ; "debug" ; "Process.dll" |]
 Settings.SelectExecutableFile path
 let numDays = Settings.NumDays
-let filePath = Settings.FilePath
 
 let [<Literal>] connStringName = "PaymentsData"
 let [<Literal>] dbVendor = Common.DatabaseProviderTypes.MSSQLSERVER
