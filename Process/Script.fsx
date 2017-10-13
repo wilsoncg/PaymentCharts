@@ -18,7 +18,10 @@ let daysChart =
   Transactions.getDaysStacks numDays dc
   |> Seq.map (fun t -> Chart.StackedBar(t.Days, t.Amounts, Name= sprintf "%A" t.Name))
   |> Chart.Combine  
-  |> Chart.withTitle (sprintf "Last %i days transactions" numDays)
+  |> Chart.withLayout (
+    Layout.init (
+        Barmode=StyleParam.Barmode.Stack, 
+        Title= sprintf "Last %i days transactions" numDays))
   |> Chart.withSize (1200,900)
   |> Chart.SaveHtmlAs "last7days" 
 
