@@ -9,6 +9,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		Data.sql = Data.sql
 		FullDbMap.dbml = FullDbMap.dbml
+		last7days.png = last7days.png
+		README.md = README.md
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Process.UnitTests", "Process.UnitTests\Process.UnitTests.csproj", "{B1102076-40F9-4694-9C45-A5A289618606}"
