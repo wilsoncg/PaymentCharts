@@ -5,6 +5,7 @@ open System.Linq
 open FSharp.Data.Sql
 open FSharp.Data.Sql.Runtime
 open ChartSettings
+open FSharp.Plotly
 
 type Currency = { BaseCurrencyId : int; TermsCurrencyId : int; Rate : decimal; }
 let private curr b t r =
@@ -127,5 +128,4 @@ let getHoursStacks dataContext =
             Name = fst t; 
             Hours = getFrom trans first;
             Amounts = getFrom trans third;
-        })
-  
+        }) 
