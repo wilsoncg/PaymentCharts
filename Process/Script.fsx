@@ -29,7 +29,7 @@ let daysChart =
         Barmode=StyleParam.Barmode.Stack, 
         Title= sprintf "Last %i days transactions" numDays))
   |> Chart.withSize (1200,900)
-  |> Chart.CustomSaveHtmlAs "last7days"
+  |> CustomSaveHtmlAs "last7days"
 
 let last24hChart = 
   let stacks = Transactions.getHoursStacks dc
@@ -40,7 +40,7 @@ let last24hChart =
     |> Chart.Combine  
     |> Chart.withTitle "Last 24 hours transactions"
     |> Chart.withSize (1200,900)
-    |> Chart.CustomSaveHtmlAs "last24hours"
+    |> CustomSaveHtmlAs "last24hours"
 
 //GenericChart.ofTraceObject sampleChart layout
 //|> Chart.Show

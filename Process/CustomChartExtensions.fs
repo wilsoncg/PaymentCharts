@@ -7,8 +7,7 @@ open HtmlAgilityPack
 
 open GenericChart
 
-type FSharp.Plotly.Chart with
- static member CustomSaveHtmlAs pathName (ch:GenericChart) =
+let CustomSaveHtmlAs pathName (ch:GenericChart) =
     let html = GenericChart.toEmbeddedHTML ch
     let customHtml =
         let mutable doc = HtmlDocument() 
