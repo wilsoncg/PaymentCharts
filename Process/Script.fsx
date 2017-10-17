@@ -4,6 +4,7 @@
 #r "../packages/SQLProvider.1.1.11/lib/FSharp.Data.SqlProvider.dll"
 #r "../packages/FSharp.Configuration.1.3.0/lib/net45/FSharp.Configuration.dll"
 #r "../packages/HtmlAgilityPack.1.6.0/lib/Net45/HtmlAgilityPack.dll"
+#r "../packages/Newtonsoft.Json.10.0.3/lib/net45/Newtonsoft.Json.dll"
 #r "System.Data.Linq"
 
 #load "ChartSettings.fs"
@@ -38,7 +39,10 @@ let last24hChart =
     stacks
     |> Seq.map (fun t -> Chart.StackedColumn(t.Hours, t.Amounts, Name= sprintf "%A" t.Name))
     |> Chart.Combine  
-    |> Chart.withTitle "Last 24 hours transactions"
+    |> Chart.withLayout (
+     Layout.init (
+        Barmode=StyleParam.Barmode.Stack, 
+        Title= "Last 24 hours transactions"))
     |> Chart.withSize (1200,900)
     |> CustomSaveHtmlAs "last24hours"
 
