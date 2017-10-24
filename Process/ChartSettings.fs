@@ -16,6 +16,6 @@ type PaymentsDb =
  SqlDataProvider<
     DatabaseVendor=dbVendor,
     ConnectionStringName=connStringName,
-    TableNames="FxRate,LedgerTransaction">
+    TableNames="FxRate,LedgerTransaction,AccountOperator,LegalContractCounterParty,ClientAccount,ClientType,TradingAccount,GeneralLedger">
 
 FSharp.Data.Sql.Common.QueryEvents.SqlQueryEvent |> Event.add (printfn "Executing SQL: %O")

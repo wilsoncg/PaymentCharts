@@ -77,11 +77,18 @@ let private groupedToTuple groupedTransactions currencies =
     day, stype, sumAmount
 
 let private lastNDaysQuery numDays (dc:PaymentsDb.dataContext) =
-    let typeIds = [|63;26;28;269;82;83;84;115;230;231;25;27;29;102;62;103;39;234;236;273;275;11;270|]
-    query {
+   let typeIds = [|63;26;28;269;82;83;84;115;230;231;25;27;29;102;62;103;39;234;236;273;275;11;270|]
+   query {
     for transaction in dc.Dbo.LedgerTransaction do
+    join ao in dc.Dbo.AccountOperator on (transaction.AccountOperatorId = ao.LegalPartyId)
+    join lccp in dc.Dbo.LegalContractCounterParty on (ao.LegalContractCounterPartyId = lccp.LegalContractCounterPartyId)
+    join gl in dc.Dbo.GeneralLedger on (transaction.LedgerTransactionId = gl.LedgerTransactionId)
+    join ta in dc.Dbo.TradingAccount on (gl.LedgerId = ta.LedgerId)
+    join ca in dc.Dbo.ClientAccount on (ta.ClientAccountId = ca.ClientAccountId)
+    join ctype in dc.Dbo.ClientType on (ca.ClientTypeId = ctype.ClientTypeId)  
     where (transaction.LedgerTransactionDateTime >= DateTime.UtcNow.Subtract(TimeSpan.FromDays(float numDays)) && 
-            typeIds.Contains(transaction.LedgerTransactionTypeId))
+            typeIds.Contains(transaction.LedgerTransactionTypeId) &&
+            (ctype.ClientTypeId <> 2 && (lccp.IsDemo <> true) && (lccp.IsTest <> true)))
     sortByDescending transaction.LedgerTransactionDateTime
     select transaction
     } |> Seq.toList
