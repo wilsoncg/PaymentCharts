@@ -17,6 +17,7 @@ open System.Web.UI.WebControls
 
 let numDays = ChartSettings.numDays
 let dc = ChartSettings.PaymentsDb.GetDataContext(ChartSettings.Settings.ConnectionStrings.PaymentsData, 300)
+let date = System.DateTime.UtcNow.ToString("dd/MM/yy")
 
 let daysChart = 
   let stacks = Transactions.getDaysStacks numDays dc
@@ -28,7 +29,7 @@ let daysChart =
   |> Chart.withLayout (
     Layout.init (
         Barmode=StyleParam.Barmode.Stack, 
-        Title= sprintf "Last %i days transactions" numDays))
+        Title= sprintf "Last %i days transactions %s" numDays date))
   |> Chart.withSize (1200,900)
   |> CustomSaveHtmlAs "last7days"
 
@@ -42,7 +43,7 @@ let last24hChart =
     |> Chart.withLayout (
      Layout.init (
         Barmode=StyleParam.Barmode.Stack, 
-        Title= "Last 24 hours transactions"))
+        Title= sprintf "Last 24 hours transactions %s" date))
     |> Chart.withSize (1200,900)
     |> CustomSaveHtmlAs "last24hours"
 
