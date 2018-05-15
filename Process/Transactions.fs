@@ -58,6 +58,9 @@ let transactionTypeMap ttype =
  | 275 -> "Billpay Deposit"
  | 11 -> "BPay deposit"
  | 270 -> "PA Payout"
+ | 241 -> "PA Deposit"
+ | 337 -> "Echeck Deposit"
+ | 339 -> "Echeck Withdrawal"
  | _ -> "Other"
 
 let private groupedToTuple groupedTransactions currencies =
@@ -77,7 +80,7 @@ let private groupedToTuple groupedTransactions currencies =
     day, stype, sumAmount
 
 let private lastNDaysQuery numDays (dc:PaymentsDb.dataContext) =
-   let typeIds = [|63;26;28;269;82;83;84;115;230;231;25;27;29;102;62;103;39;234;236;273;275;11;270|]
+   let typeIds = [|63;26;28;269;82;83;84;115;230;231;25;27;29;102;62;103;39;234;236;273;275;11;270;241;337;339|]
    query {
     for transaction in dc.Dbo.LedgerTransaction do
     join ao in dc.Dbo.AccountOperator on (transaction.AccountOperatorId = ao.LegalPartyId)
