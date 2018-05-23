@@ -1,13 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Database Name="PaymentsData" xmlns="http://schemas.microsoft.com/linqtosql/dbml/2007">
-  <Table Name="dbo.FXRate" Member="FXRates">
-    <Type Name="FXRate">
+  <Table Name="dbo.AccountOperator" Member="AccountOperator">
+    <Type Name="AccountOperator">
+      <Column Name="LegalPartyId" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="LegalContractCounterPartyId" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+    </Type>
+  </Table>
+  <Table Name="dbo.ClientAccount" Member="ClientAccount">
+    <Type Name="ClientAccount">
+      <Column Name="ClientAccountId" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="ClientTypeId" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+    </Type>
+  </Table>
+  <Table Name="dbo.ClientType" Member="ClientType">
+    <Type Name="ClientType">
+      <Column Name="ClientTypeId" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+    </Type>
+  </Table>
+  <Table Name="dbo.FxRate" Member="FxRate">
+    <Type Name="FxRate">
       <Column Name="BaseCurrencyId" Type="System.Int32" DbType="Int NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
       <Column Name="TermsCurrencyId" Type="System.Int32" DbType="Int NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
       <Column Name="EndOfDayRate" Type="System.Decimal" DbType="Decimal(18,7) NOT NULL" CanBeNull="false" />
     </Type>
   </Table>
-  <Table Name="dbo.LedgerTransaction" Member="LedgerTransactions">
+  <Table Name="dbo.GeneralLedger" Member="GeneralLedger">
+    <Type Name="GeneralLedger">
+      <Column Name="LedgerId" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="LedgerTransactionId" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+    </Type>
+  </Table>
+  <Table Name="dbo.LedgerTransaction" Member="LedgerTransaction">
     <Type Name="LedgerTransaction">
       <Column Name="LedgerTransactionId" Type="System.Int32" DbType="Int NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
       <Column Name="LedgerTransactionTypeId" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
@@ -15,6 +38,19 @@
       <Column Name="Amount" Type="System.Decimal" DbType="Decimal(18,6) NOT NULL" CanBeNull="false" />
       <Column Name="CurrencyId" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
       <Column Name="AccountOperatorId" Type="System.Int32" DbType="Int" CanBeNull="true" />
+    </Type>
+  </Table>
+  <Table Name="dbo.LegalContractCounterParty" Member="LegalContractCounterParty">
+    <Type Name="LegalContractCounterParty">
+      <Column Name="LegalContractCounterPartyId" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="IsDemo" Type="System.Boolean" DbType="Bit" CanBeNull="true" />
+      <Column Name="IsTest" Type="System.Boolean" DbType="Bit" CanBeNull="true" />
+    </Type>
+  </Table>
+  <Table Name="dbo.TradingAccount" Member="TradingAccount">
+    <Type Name="TradingAccount">
+      <Column Name="ClientAccountId" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="LedgerId" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
     </Type>
   </Table>
 </Database>

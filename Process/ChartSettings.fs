@@ -1,7 +1,7 @@
 ﻿module ChartSettings
 
 open FSharp.Configuration
-open FSharp.Data.Sql
+open FSharp.Data.TypeProviders
 
 type Settings = AppSettings<"app.config">
 let path = System.IO.Path.Combine [|__SOURCE_DIRECTORY__ ; "bin" ; "debug" ; "Process.dll" |]
@@ -9,13 +9,18 @@ Settings.SelectExecutableFile path
 let numDays = Settings.NumDays
 
 let [<Literal>] connStringName = "PaymentsData"
-let [<Literal>] dbVendor = Common.DatabaseProviderTypes.MSSQLSERVER
+//let [<Literal>] dbVendor = Common.DatabaseProviderTypes.MSSQLSERVER
 let [<Literal>] schemaFile = "FullDbMap.dbml"
 
 type PaymentsDb = 
- SqlDataProvider<
-    DatabaseVendor=dbVendor,
+ SqlDataConnection<
     ConnectionStringName=connStringName,
-    TableNames="FxRate,LedgerTransaction,AccountOperator,LegalContractCounterParty,ClientAccount,ClientType,TradingAccount,GeneralLedger">
+    LocalSchemaFile=schemaFile,
+    Timeout=300
+    //TableNames="FxRate,LedgerTransaction,AccountOperator,LegalContractCounterParty,ClientAccount,ClientType,TradingAccount,GeneralLedger"
+    >
+
+let dataContext = PaymentsDb.GetDataContext()
+type FxRate = PaymentsDb.ServiceTypes.FxRate
 
 FSharp.Data.Sql.Common.QueryEvents.SqlQueryEvent |> Event.add (printfn "Executing SQL: %O")

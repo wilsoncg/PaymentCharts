@@ -2,19 +2,30 @@
 
 open System
 open System.Linq
-open FSharp.Data.Sql
-open FSharp.Data.Sql.Runtime
 open ChartSettings
 open FSharp.Plotly
 
+type dataContext = ChartSettings.PaymentsDb.ServiceTypes.SimpleDataContextTypes.PaymentsData
+
 type Currency = { BaseCurrencyId : int; TermsCurrencyId : int; Rate : decimal; }
-let private curr b t r =
+let private createCurrency b t r =
   { BaseCurrencyId = b; TermsCurrencyId = t; Rate = r }
 
-let currencyList (dc:PaymentsDb.dataContext) = 
+type Transaction = { 
+    Year : int;
+    Month : int;
+    Day : int;
+    TypeId : int;
+    CurrencyId : int;
+    SumAmount : decimal;
+    }
+let private createTransaction y m d t c a =
+    { Year = y; Month = m; Day = d; TypeId = t; CurrencyId = c; SumAmount = a }
+
+let currencyList (dc:dataContext) = 
   let rates = 
     query {
-        for r in dc.Dbo.FxRate do
+        for r in dc.FxRate do
         select (r)
         }
     |> Seq.toList
@@ -23,13 +34,13 @@ let currencyList (dc:PaymentsDb.dataContext) =
        for y in rates do
        if y.BaseCurrencyId = x.TermsCurrencyId 
        then 
-        yield curr x.BaseCurrencyId y.TermsCurrencyId (1m * x.EndOfDayRate * y.EndOfDayRate)
-        yield curr y.TermsCurrencyId x.BaseCurrencyId (1m / (1m * x.EndOfDayRate * y.EndOfDayRate))
+        yield createCurrency x.BaseCurrencyId y.TermsCurrencyId (1m * x.EndOfDayRate * y.EndOfDayRate)
+        yield createCurrency y.TermsCurrencyId x.BaseCurrencyId (1m / (1m * x.EndOfDayRate * y.EndOfDayRate))
       ]
   let directs =
       [for r in rates do 
-       yield curr r.BaseCurrencyId r.TermsCurrencyId r.EndOfDayRate
-       yield curr r.TermsCurrencyId r.BaseCurrencyId (1m / r.EndOfDayRate)
+       yield createCurrency r.BaseCurrencyId r.TermsCurrencyId r.EndOfDayRate
+       yield createCurrency r.TermsCurrencyId r.BaseCurrencyId (1m / r.EndOfDayRate)
       ]
   List.append crosses directs
 
@@ -72,69 +83,77 @@ let private groupedToTuple groupedTransactions currencies =
         | (_, ttype) -> transactionTypeMap ttype
     let sumAmount = 
         snd groupedTransactions 
-        |> Seq.fold (fun acc (tran:PaymentsDb.dataContext.``dbo.LedgerTransactionEntity``) -> 
+        |> Seq.fold (fun acc (tran:PaymentsDb.ServiceTypes.LedgerTransaction) -> 
         match tran.CurrencyId with
         | 6 -> acc + tran.Amount
         | _ -> acc + convert currencies tran.Amount tran.CurrencyId 6
         ) 0m
     day, stype, sumAmount
 
-
 let firstFrom8 (f, _,_,_,_,_,_) = f
 
-let dc = ChartSettings.PaymentsDb.GetDataContext(ChartSettings.Settings.ConnectionStrings.PaymentsData, 300)
-
-let lastNDaysQueryFaster numDays (dc:PaymentsDb.dataContext) =
+let lastNDaysQueryFaster numDays (dc:dataContext) =
+   let typeIds = [|63;26;28;269;82;83;84;115;230;231;25;27;29;102;62;103;39;234;236;273;275;11;270;241;337;339|]
+   let query1 =
+    query {
+        for transaction in dc.LedgerTransaction do
+        join ao in dc.AccountOperator on (transaction.AccountOperatorId.Value = ao.LegalPartyId)
+        join lccp in dc.LegalContractCounterParty on (ao.LegalContractCounterPartyId = lccp.LegalContractCounterPartyId)
+        join gl in dc.GeneralLedger on (transaction.LedgerTransactionId = gl.LedgerTransactionId)
+        join ta in dc.TradingAccount on (gl.LedgerId = ta.LedgerId)
+        join ca in dc.ClientAccount on (ta.ClientAccountId = ca.ClientAccountId)
+        join ctype in dc.ClientType on (ca.ClientTypeId = ctype.ClientTypeId)  
+        where (transaction.LedgerTransactionDateTime >= DateTime.UtcNow.Subtract(TimeSpan.FromDays(float numDays)) && 
+                typeIds.Contains(transaction.LedgerTransactionTypeId) &&
+                (ctype.ClientTypeId <> 2 && (lccp.IsDemo.Value <> true) && (lccp.IsTest.Value <> true)))
+        select transaction } 
+   query {
+        for transaction in query1 do
+        groupBy (transaction.LedgerTransactionDateTime.Year, 
+            transaction.LedgerTransactionDateTime.Month, 
+            transaction.LedgerTransactionDateTime.Day, 
+            transaction.LedgerTransactionTypeId, 
+            transaction.CurrencyId) into g
+        let summed = 
+         query {
+            for gs in g do
+            sumBy gs.Amount }
+        let fromGroupingAndSum (v, w, x, y, z) s =
+            createTransaction v w x y z s
+        let tran = fromGroupingAndSum g.Key summed
+        select tran
+    } |> Seq.toList
+   
+let private lastNDaysQuery numDays (dc:dataContext) =
    let typeIds = [|63;26;28;269;82;83;84;115;230;231;25;27;29;102;62;103;39;234;236;273;275;11;270;241;337;339|]
    query {
-    for transaction in dc.Dbo.LedgerTransaction.AsQueryable() do
-    join ao in dc.Dbo.AccountOperator on (transaction.AccountOperatorId = ao.LegalPartyId)
-    join lccp in dc.Dbo.LegalContractCounterParty on (ao.LegalContractCounterPartyId = lccp.LegalContractCounterPartyId)
-    join gl in dc.Dbo.GeneralLedger on (transaction.LedgerTransactionId = gl.LedgerTransactionId)
-    join ta in dc.Dbo.TradingAccount on (gl.LedgerId = ta.LedgerId)
-    join ca in dc.Dbo.ClientAccount on (ta.ClientAccountId = ca.ClientAccountId)
-    join ctype in dc.Dbo.ClientType on (ca.ClientTypeId = ctype.ClientTypeId)  
+    for transaction in dc.LedgerTransaction do
+    join ao in dc.AccountOperator on (transaction.AccountOperatorId.Value = ao.LegalPartyId)
+    join lccp in dc.LegalContractCounterParty on (ao.LegalContractCounterPartyId = lccp.LegalContractCounterPartyId)
+    join gl in dc.GeneralLedger on (transaction.LedgerTransactionId = gl.LedgerTransactionId)
+    join ta in dc.TradingAccount on (gl.LedgerId = ta.LedgerId)
+    join ca in dc.ClientAccount on (ta.ClientAccountId = ca.ClientAccountId)
+    join ctype in dc.ClientType on (ca.ClientTypeId = ctype.ClientTypeId)  
     where (transaction.LedgerTransactionDateTime >= DateTime.UtcNow.Subtract(TimeSpan.FromDays(float numDays)) && 
             typeIds.Contains(transaction.LedgerTransactionTypeId) &&
-            (ctype.ClientTypeId <> 2 && (lccp.IsDemo <> true) && (lccp.IsTest <> true)))
-    groupBy (transaction.LedgerTransactionDateTime.Year, 
-        transaction.LedgerTransactionDateTime.Month, 
-        transaction.LedgerTransactionDateTime.Day, 
-        transaction.LedgerTransactionTypeId, 
-        transaction.CurrencyId) into g
-    let summed = 
-        query {
-            for amounts in g do
-            sumBy (firstFrom8 amounts).Amount
-        }
-    select (g.Key, summed)
-    }
-let lastNDaysQueryFasterWithContext numDays = lastNDaysQueryFaster numDays dc
-
-let private lastNDaysQuery numDays (dc:PaymentsDb.dataContext) =
-   let typeIds = [|63;26;28;269;82;83;84;115;230;231;25;27;29;102;62;103;39;234;236;273;275;11;270;241;337;339|]
-   query {
-    for transaction in dc.Dbo.LedgerTransaction do
-    join ao in dc.Dbo.AccountOperator on (transaction.AccountOperatorId = ao.LegalPartyId)
-    join lccp in dc.Dbo.LegalContractCounterParty on (ao.LegalContractCounterPartyId = lccp.LegalContractCounterPartyId)
-    join gl in dc.Dbo.GeneralLedger on (transaction.LedgerTransactionId = gl.LedgerTransactionId)
-    join ta in dc.Dbo.TradingAccount on (gl.LedgerId = ta.LedgerId)
-    join ca in dc.Dbo.ClientAccount on (ta.ClientAccountId = ca.ClientAccountId)
-    join ctype in dc.Dbo.ClientType on (ca.ClientTypeId = ctype.ClientTypeId)  
-    where (transaction.LedgerTransactionDateTime >= DateTime.UtcNow.Subtract(TimeSpan.FromDays(float numDays)) && 
-            typeIds.Contains(transaction.LedgerTransactionTypeId) &&
-            (ctype.ClientTypeId <> 2 && (lccp.IsDemo <> true) && (lccp.IsTest <> true)))
+            (ctype.ClientTypeId <> 2 && (lccp.IsDemo.Value <> true) && (lccp.IsTest.Value <> true)))
     sortByDescending transaction.LedgerTransactionDateTime
     select transaction
     } |> Seq.toList
 
-let private lastNDaysTransactions numDays (dc:PaymentsDb.dataContext) = 
+let private lastNDaysTransactions numDays (dc:dataContext) = 
  let currencies = currencyList dc
  lastNDaysQuery numDays dc 
   |> Seq.groupBy (fun tran -> tran.LedgerTransactionDateTime.Day, tran.LedgerTransactionTypeId)
   |> Seq.map (fun groupedTransactions -> groupedToTuple groupedTransactions currencies)
 
-let private last24hoursTransactions (dc:PaymentsDb.dataContext) =
+let private lastNDaysTransactionsFaster numDays (dc:dataContext) = 
+ let currencies = currencyList dc
+ lastNDaysQueryFaster numDays dc 
+  |> Seq.groupBy (fun tran -> tran.Day, tran.TypeId)
+  |> Seq.map (fun groupedTransactions -> groupedToTuple groupedTransactions currencies)
+
+let private last24hoursTransactions (dc:dataContext) =
  let currencies = currencyList dc
  lastNDaysQuery 1 dc
  |> Seq.groupBy (fun tran -> tran.LedgerTransactionDateTime.Hour, tran.LedgerTransactionTypeId)
@@ -150,8 +169,9 @@ let getFrom list selector =
 
 type DaysStackInfo = { Name : string; Days : seq<int>; Amounts : seq<decimal> }
 type HoursStackInfo = { Name : string; Hours : seq<int>; Amounts : seq<decimal> }
+
 let getDaysStacks numDays dataContext =
-    lastNDaysTransactions numDays dataContext
+    lastNDaysTransactionsFaster numDays dataContext
     |> Seq.groupBy (fun t -> second t)
     |> Seq.map (fun t -> 
         let trans = snd t
