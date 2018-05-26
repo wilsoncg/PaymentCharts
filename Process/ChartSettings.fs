@@ -16,11 +16,15 @@ type PaymentsDb =
  SqlDataConnection<
     ConnectionStringName=connStringName,
     LocalSchemaFile=schemaFile,
+    ForceUpdate=false,
+    Views=false,
+    StoredProcedures=false,
     Timeout=300
     //TableNames="FxRate,LedgerTransaction,AccountOperator,LegalContractCounterParty,ClientAccount,ClientType,TradingAccount,GeneralLedger"
     >
 
 let dataContext = PaymentsDb.GetDataContext()
+dataContext.DataContext.ObjectTrackingEnabled <- false;
 type FxRate = PaymentsDb.ServiceTypes.FxRate
 
 FSharp.Data.Sql.Common.QueryEvents.SqlQueryEvent |> Event.add (printfn "Executing SQL: %O")

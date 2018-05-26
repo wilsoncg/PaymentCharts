@@ -79,7 +79,7 @@ USE PaymentsData
 
 -- Insert data into the Table1 table.
 INSERT INTO [LedgerTransaction] (LedgerTransactionId, LedgerTransactionTypeId, LedgerTransactionDateTime, Amount, CurrencyId, AccountOperatorId)
-  VALUES(1, 82, '2017-10-12 13:20:50.857', 200.000000, 6, 1);
+  VALUES(1, 82, '2018-05-24 13:20:50.857', 200.000000, 6, 1);
  INSERT INTO [LedgerTransaction] (LedgerTransactionId, LedgerTransactionTypeId, LedgerTransactionDateTime, Amount, CurrencyId, AccountOperatorId)
   VALUES(2, 82, '2017-10-10 13:20:50.857', 200.000000, 6, 1);
 INSERT INTO [LedgerTransaction] (LedgerTransactionId, LedgerTransactionTypeId, LedgerTransactionDateTime, Amount, CurrencyId, AccountOperatorId)

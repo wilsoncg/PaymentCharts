@@ -109,29 +109,24 @@ let lastNDaysQueryFaster numDays (dc:dataContext) =
         select transaction } 
    query {
         for transaction in query1 do
-        //let key = AnonymousObject<_,_>(cal.APYear, cal.APMonth)
-        groupBy (
+        let key = 
+           AnonymousObject<_,_,_,_>(
             transaction.LedgerTransactionDateTime.DayOfYear, 
             transaction.LedgerTransactionDateTime.Hour,
             transaction.LedgerTransactionTypeId, 
-            transaction.CurrencyId) into g
+            transaction.CurrencyId)
+        groupValBy transaction key into g
         let summed = 
          query {
             for gs in g do
             sumBy gs.Amount }
-        let fromGroupingAndSum (w, x, y, z) s =
-            createTransaction w x y z s
-        let result = fromGroupingAndSum g.Key summed
-        select result
-        //select (g.Key, summed)
+        select (g.Key.Item1, g.Key.Item2, g.Key.Item3, g.Key.Item4, summed)
     } 
-    //|> Seq.map (fun t -> 
-    //    let fromGroupingAndSum (w, x, y, z) s =
-    //        createTransaction w x y z s
-    //    let grouping = fst t
-    //    let sum = snd t
-    //    fromGroupingAndSum grouping sum
-    //    )
+    |> Seq.toList
+    |> Seq.map (fun t -> 
+        let splitTuple (w, x, y, z, s) =
+          createTransaction w x y z s
+        splitTuple t)
     |> Seq.toList
    
 let private lastNDaysQuery numDays (dc:dataContext) =
