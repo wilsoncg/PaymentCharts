@@ -25,6 +25,7 @@ type PaymentsDb =
 
 let dataContext = PaymentsDb.GetDataContext()
 dataContext.DataContext.ObjectTrackingEnabled <- false;
+dataContext.DataContext.CommandTimeout <- 300
 type FxRate = PaymentsDb.ServiceTypes.FxRate
 
 FSharp.Data.Sql.Common.QueryEvents.SqlQueryEvent |> Event.add (printfn "Executing SQL: %O")

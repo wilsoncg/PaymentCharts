@@ -94,18 +94,18 @@ let firstFrom8 (f, _,_,_,_,_,_) = f
 
 let lastNDaysQueryFaster numDays (dc:dataContext) =
    let typeIds = [|63;26;28;269;82;83;84;115;230;231;25;27;29;102;62;103;39;234;236;273;275;11;270;241;337;339|]
-   let query1 =
+   let findLatestTransaction =
     query {
         for transaction in dc.LedgerTransaction do
-        join ao in dc.AccountOperator on (transaction.AccountOperatorId.Value = ao.LegalPartyId)
-        join lccp in dc.LegalContractCounterParty on (ao.LegalContractCounterPartyId = lccp.LegalContractCounterPartyId)
-        join gl in dc.GeneralLedger on (transaction.LedgerTransactionId = gl.LedgerTransactionId)
-        join ta in dc.TradingAccount on (gl.LedgerId = ta.LedgerId)
-        join ca in dc.ClientAccount on (ta.ClientAccountId = ca.ClientAccountId)
-        join ctype in dc.ClientType on (ca.ClientTypeId = ctype.ClientTypeId)  
-        where (transaction.LedgerTransactionDateTime >= DateTime.UtcNow.Subtract(TimeSpan.FromDays(float numDays)) && 
-                typeIds.Contains(transaction.LedgerTransactionTypeId) &&
-                (ctype.ClientTypeId <> 2 && (lccp.IsDemo.Value <> true) && (lccp.IsTest.Value <> true)))
+        where (transaction.LedgerTransactionDateTime < DateTime.UtcNow.Subtract(TimeSpan.FromDays(float numDays)))
+        select (transaction.LedgerTransactionId)
+        take 1
+    }
+   let query1 =
+    query {
+        for transaction in dc.LedgerTransaction.AsQueryable() do 
+        where (transaction.LedgerTransactionId >= findLatestTransaction.First() &&
+                typeIds.Contains(transaction.LedgerTransactionTypeId))
         select transaction } 
    query {
         for transaction in query1 do
