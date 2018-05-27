@@ -25,7 +25,7 @@ let currencyList (dc:dataContext) =
   let rates = 
     query {
         for r in dc.FxRate do
-        select (r)
+        select r
         }
     |> Seq.toList
   let crosses =
@@ -56,21 +56,21 @@ let convert list amount fromId toId =
 let transactionTypeMap ttype =
  match ttype with
  | 63 | 26 | 28 | 269 -> "Bank Reversal"
+ | 230 | 231 -> "Card Reversal" 
+ | 25 | 27| 29 -> "Bank Deposit" 
  | 82 | 83|  84 -> "Card Deposit"
- | 115 -> "Card Withdrawal"
- | 230 | 231 -> "Card Reversal"
- | 25 | 27| 29 -> "Bank Deposit"
- | 102 | 62 | 103 -> "Bank Withdrawal"
  | 39 -> "Cheque/Verisign/Paypal"
  | 239 -> "Billing Japan"
  | 234 | 236 -> "Netbanx Deposit"
+ | 337 -> "Echeck Deposit"
  | 273 -> "NETS Deposit"
  | 275 -> "Billpay Deposit"
- | 11 -> "BPay deposit"
- | 270 -> "PA Payout"
+ | 11 -> "BPay deposit" 
  | 241 -> "PA Deposit"
- | 337 -> "Echeck Deposit"
+ | 102 | 62 | 103 -> "Bank Withdrawal"
  | 339 -> "Echeck Withdrawal"
+ | 115 -> "Card Withdrawal"
+ | 270 -> "PA Payout"
  | _ -> "Other"
 
 let (|Contains|_|) (c:string) (s:string) =
@@ -78,6 +78,24 @@ let (|Contains|_|) (c:string) (s:string) =
         Some(s)
     else
         None
+
+let colourMap ttype =
+    match ttype with
+    | Contains "bank deposit" s -> "#145214"
+    | Contains "card deposit" s -> "#1f7a1f"
+    | Contains "cheque" s -> "#29a329"
+    | Contains "japan" s -> "#33cc33"
+    | Contains "netbanx" s -> "#5cd65c"
+    | Contains "echeck deposit" s -> "#85e085"
+    | Contains "nets" s -> "#adebad"
+    | Contains "billpay" s -> "#99e699"
+    | Contains "bpay" s -> "#c2f0c2"
+    | Contains "pa deposit" s-> "#d6f5d6"
+    | Contains "bank withdrawal" s -> "#ff3385"
+    | Contains "card withdrawal" s-> "#ff80b3"
+    | Contains "pa payout" s -> "#ffb3d1"
+    | Contains "echeck withdrawal" s -> "#e6005c"
+    | _ -> "#9999ff"
 
 let private groupedToTuple groupedTransactions currencies =
     let day = 
@@ -95,13 +113,14 @@ let private groupedToTuple groupedTransactions currencies =
         ) 0m
     let makeWithdrawalNegative stype amount =
         match stype with
+        | Contains "echeck" s -> amount
         | Contains "withdrawal" s -> -amount
         | Contains "payout" s -> -amount
         | _ -> amount
     day, stype, makeWithdrawalNegative stype sumAmount
 
 let lastNDaysQueryFaster numDays (dc:dataContext) =
-   let typeIds = [|63;26;28;269;82;83;84;115;230;231;25;27;29;102;62;103;39;234;236;273;275;11;270;241;337;339|]
+   let typeIds = [|63;26;28;269;82;83;84;115;230;231;25;27;29;102;62;103;39;239;234;236;273;275;11;270;241;337;339|]
    let findLatestTransaction =
     query {
         for transaction in dc.LedgerTransaction do
@@ -164,8 +183,8 @@ let getFrom list selector =
   list
   |> Seq.map selector
 
-type DaysStackInfo = { Name : string; Days : seq<int>; Amounts : seq<decimal> }
-type HoursStackInfo = { Name : string; Hours : seq<int>; Amounts : seq<decimal> }
+type DaysStackInfo = { Name : string; Days : seq<int>; Amounts : seq<decimal>; Colour : string }
+type HoursStackInfo = { Name : string; Hours : seq<int>; Amounts : seq<decimal>; Colour : string }
 
 let getDaysStacks numDays dataContext =
     lastNDaysTransactionsFaster numDays dataContext
@@ -178,6 +197,7 @@ let getDaysStacks numDays dataContext =
             Name = fst t; 
             Days = getFrom trans first;
             Amounts = getFrom trans third;
+            Colour = colourMap (fst t)
         })
 
 let getHoursStacks dataContext =
@@ -189,4 +209,5 @@ let getHoursStacks dataContext =
             Name = fst t; 
             Hours = getFrom trans first;
             Amounts = getFrom trans third;
+            Colour = colourMap (fst t)
         }) 

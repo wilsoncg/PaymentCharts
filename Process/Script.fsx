@@ -25,14 +25,19 @@ let daysChart =
   if Seq.isEmpty stacks then stacks |> ignore 
   else
   stacks
-  |> Seq.map (fun t -> Bar(x = t.Days, y = t.Amounts, name= sprintf "%A" t.Name))
+  |> Seq.map (fun t -> 
+    Bar(
+     x = t.Days, 
+     y = t.Amounts, 
+     name= sprintf "%A" t.Name, 
+     marker = Marker(color = t.Colour)))
   |> Chart.Plot  
   |> Chart.WithLayout (
     Layout(
         barmode="relative", 
         title= sprintf "Last %i days transactions %s" numDays date))
   |> Chart.WithSize (1200,900)
-  |> CustomSaveHtmlAs "last7days"
+  |> CustomSaveHtmlAs "last31days"
 
 let last24hChart = 
   let stacks = Transactions.getHoursStacks dc
