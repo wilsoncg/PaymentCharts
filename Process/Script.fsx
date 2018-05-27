@@ -44,14 +44,38 @@ let last24hChart =
   if Seq.isEmpty stacks then stacks |> ignore 
   else
     stacks
-    |> Seq.map (fun t -> Bar(x = t.Hours, y = t.Amounts, name= sprintf "%A" t.Name))
+    |> Seq.map (fun t -> 
+    Bar(
+     x = t.Hours, 
+     y = t.Amounts, 
+     name= sprintf "%A" t.Name, 
+     marker = Marker(color = t.Colour)))
     |> Chart.Plot  
     |> Chart.WithLayout (
      Layout(
-        barmode="stack", 
+        barmode="relative", 
         title= sprintf "Last 24 hours transactions %s" date))
     |> Chart.WithSize (1200,900)
     |> CustomSaveHtmlAs "last24hours"
+
+let last6monthsChart = 
+  let stacks = Transactions.getDaysStacks 180 dc
+  if Seq.isEmpty stacks then stacks |> ignore 
+  else
+    stacks
+    |> Seq.map (fun t -> 
+    Bar(
+     x = t.Days, 
+     y = t.Amounts, 
+     name= sprintf "%A" t.Name, 
+     marker = Marker(color = t.Colour)))
+    |> Chart.Plot  
+    |> Chart.WithLayout (
+     Layout(
+        barmode="relative", 
+        title= sprintf "Last 6 months transactions %s" date))
+    |> Chart.WithSize (1200,900)
+    |> CustomSaveHtmlAs "last6months"
 
 //GenericChart.ofTraceObject sampleChart layout
 //|> Chart.Show
