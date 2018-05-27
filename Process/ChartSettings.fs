@@ -9,7 +9,6 @@ Settings.SelectExecutableFile path
 let numDays = Settings.NumDays
 
 let [<Literal>] connStringName = "PaymentsData"
-//let [<Literal>] dbVendor = Common.DatabaseProviderTypes.MSSQLSERVER
 let [<Literal>] schemaFile = "FullDbMap.dbml"
 
 type PaymentsDb = 
@@ -20,7 +19,6 @@ type PaymentsDb =
     Views=false,
     StoredProcedures=false,
     Timeout=300
-    //TableNames="FxRate,LedgerTransaction,AccountOperator,LegalContractCounterParty,ClientAccount,ClientType,TradingAccount,GeneralLedger"
     >
 
 let dataContext = PaymentsDb.GetDataContext()

@@ -73,6 +73,12 @@ let transactionTypeMap ttype =
  | 339 -> "Echeck Withdrawal"
  | _ -> "Other"
 
+let (|Contains|_|) (c:string) (s:string) =
+    if s.ToLower().Contains(c) then
+        Some(s)
+    else
+        None
+
 let private groupedToTuple groupedTransactions currencies =
     let day = 
         match fst groupedTransactions with
@@ -87,9 +93,12 @@ let private groupedToTuple groupedTransactions currencies =
         | 6 -> acc + tran.SumAmount
         | _ -> acc + convert currencies tran.SumAmount tran.CurrencyId 6
         ) 0m
-    day, stype, sumAmount
-
-let firstFrom8 (f, _,_,_,_,_,_) = f
+    let makeWithdrawalNegative stype amount =
+        match stype with
+        | Contains "withdrawal" s -> -amount
+        | Contains "payout" s -> -amount
+        | _ -> amount
+    day, stype, makeWithdrawalNegative stype sumAmount
 
 let lastNDaysQueryFaster numDays (dc:dataContext) =
    let typeIds = [|63;26;28;269;82;83;84;115;230;231;25;27;29;102;62;103;39;234;236;273;275;11;270;241;337;339|]
@@ -130,8 +139,8 @@ let lastNDaysQueryFaster numDays (dc:dataContext) =
     } 
     |> Seq.toList
     |> Seq.map (fun t -> 
-        let splitTuple (w, x, y, z, s) =
-          createTransaction w x y z s
+        let splitTuple (day, hour, typeId, currencyId, sum) =
+          createTransaction day hour typeId currencyId sum
         splitTuple t)
     |> Seq.toList
     
@@ -160,7 +169,9 @@ type HoursStackInfo = { Name : string; Hours : seq<int>; Amounts : seq<decimal> 
 
 let getDaysStacks numDays dataContext =
     lastNDaysTransactionsFaster numDays dataContext
-    |> Seq.groupBy (fun t -> second t)
+    |> Seq.groupBy (fun t -> 
+        let selectType (_, transactionType, _) = transactionType
+        selectType t)
     |> Seq.map (fun t -> 
         let trans = snd t
         { 
