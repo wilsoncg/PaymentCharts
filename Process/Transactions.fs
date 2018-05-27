@@ -99,16 +99,23 @@ let lastNDaysQueryFaster numDays (dc:dataContext) =
         for transaction in dc.LedgerTransaction do
         where (transaction.LedgerTransactionDateTime < DateTime.UtcNow.Subtract(TimeSpan.FromDays(float numDays)))
         select (transaction.LedgerTransactionId)
-        take 1
+        take 1 }
+   let notTestOrDemo =
+    query {
+        for ao in dc.AccountOperator do
+        join lccp in dc.LegalContractCounterParty on (ao.LegalContractCounterPartyId = lccp.LegalContractCounterPartyId)
+        where (lccp.IsDemo.Value <> true && lccp.IsTest.Value <> true)
+        select ao.LegalPartyId
     }
-   let query1 =
+   let interestedTransactions =
     query {
         for transaction in dc.LedgerTransaction.AsQueryable() do 
         where (transaction.LedgerTransactionId >= findLatestTransaction.First() &&
-                typeIds.Contains(transaction.LedgerTransactionTypeId))
+                typeIds.Contains(transaction.LedgerTransactionTypeId) &&
+                notTestOrDemo.Contains(transaction.AccountOperatorId.Value))
         select transaction } 
    query {
-        for transaction in query1 do
+        for transaction in interestedTransactions do
         let key = 
            AnonymousObject<_,_,_,_>(
             transaction.LedgerTransactionDateTime.DayOfYear, 
@@ -128,34 +135,7 @@ let lastNDaysQueryFaster numDays (dc:dataContext) =
           createTransaction w x y z s
         splitTuple t)
     |> Seq.toList
-   
-let private lastNDaysQuery numDays (dc:dataContext) =
-   let typeIds = [|63;26;28;269;82;83;84;115;230;231;25;27;29;102;62;103;39;234;236;273;275;11;270;241;337;339|]
-   query {
-    for transaction in dc.LedgerTransaction do
-    join ao in dc.AccountOperator on (transaction.AccountOperatorId.Value = ao.LegalPartyId)
-    join lccp in dc.LegalContractCounterParty on (ao.LegalContractCounterPartyId = lccp.LegalContractCounterPartyId)
-    join gl in dc.GeneralLedger on (transaction.LedgerTransactionId = gl.LedgerTransactionId)
-    join ta in dc.TradingAccount on (gl.LedgerId = ta.LedgerId)
-    join ca in dc.ClientAccount on (ta.ClientAccountId = ca.ClientAccountId)
-    join ctype in dc.ClientType on (ca.ClientTypeId = ctype.ClientTypeId)  
-    where (transaction.LedgerTransactionDateTime >= DateTime.UtcNow.Subtract(TimeSpan.FromDays(float numDays)) && 
-            typeIds.Contains(transaction.LedgerTransactionTypeId) &&
-            (ctype.ClientTypeId <> 2 && (lccp.IsDemo.Value <> true) && (lccp.IsTest.Value <> true)))
-    sortByDescending transaction.LedgerTransactionDateTime
-    select transaction
-    } 
-    |> Seq.map (fun t -> 
-         createTransaction t.LedgerTransactionDateTime.DayOfYear t.LedgerTransactionDateTime.Hour t.LedgerTransactionTypeId t.CurrencyId t.Amount
-        )
-    |> Seq.toList
-
-let private lastNDaysTransactions numDays (dc:dataContext) = 
- let currencies = currencyList dc
- lastNDaysQuery numDays dc 
-  |> Seq.groupBy (fun tran -> tran.Day, tran.TypeId)
-  |> Seq.map (fun groupedTransactions -> groupedToTuple groupedTransactions currencies)
-
+    
 let private lastNDaysTransactionsFaster numDays (dc:dataContext) = 
  let currencies = currencyList dc
  lastNDaysQueryFaster numDays dc 
@@ -164,7 +144,7 @@ let private lastNDaysTransactionsFaster numDays (dc:dataContext) =
 
 let private last24hoursTransactions (dc:dataContext) =
  let currencies = currencyList dc
- lastNDaysQuery 1 dc
+ lastNDaysQueryFaster 1 dc
  |> Seq.groupBy (fun tran -> tran.Hour, tran.TypeId)
  |> Seq.map (fun groupedTrans -> groupedToTuple groupedTrans currencies)
 
