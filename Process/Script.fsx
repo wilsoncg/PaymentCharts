@@ -1,6 +1,6 @@
 ﻿// Learn more about F# at http://fsharp.org. See the 'F# Tutorial' project
 // for more guidance on F# programming.
-#r "../packages/FSharp.Plotly.1.0.3/lib/net45/FSharp.Plotly.dll"
+#r "../packages/XPlot.Plotly.1.4.5/lib/net45/XPlot.Plotly.dll"
 #r "../packages/SQLProvider.1.1.42/lib/net451/FSharp.Data.SqlProvider.dll"
 #r "../packages/FSharp.Configuration.1.3.0/lib/net45/FSharp.Configuration.dll"
 #r "../packages/HtmlAgilityPack.1.6.0/lib/Net45/HtmlAgilityPack.dll"
@@ -12,7 +12,7 @@
 #load "Transactions.fs"
 #load "CustomChartExtensions.fs"
 
-open FSharp.Plotly
+open XPlot.Plotly
 open CustomChartExtensions
 open System.Web.UI.WebControls
 
@@ -25,28 +25,28 @@ let daysChart =
   if Seq.isEmpty stacks then stacks |> ignore 
   else
   stacks
-  |> Seq.map (fun t -> Chart.StackedBar(t.Days, t.Amounts, Name= sprintf "%A" t.Name))
-  |> Chart.Combine  
-  |> Chart.withLayout (
-    Layout.init (
-        Barmode=StyleParam.Barmode.Stack, 
-        Title= sprintf "Last %i days transactions %s" numDays date))
-  |> Chart.withSize (1200,900)
+  |> Seq.map (fun t -> Bar(x = t.Days, y = t.Amounts, name= sprintf "%A" t.Name))
+  |> Chart.Plot  
+  |> Chart.WithLayout (
+    Layout(
+        barmode="relative", 
+        title= sprintf "Last %i days transactions %s" numDays date))
+  |> Chart.WithSize (1200,900)
   |> CustomSaveHtmlAs "last7days"
 
-//let last24hChart = 
-//  let stacks = Transactions.getHoursStacks dc
-//  if Seq.isEmpty stacks then stacks |> ignore 
-//  else
-//    stacks
-//    |> Seq.map (fun t -> Chart.StackedColumn(t.Hours, t.Amounts, Name= sprintf "%A" t.Name))
-//    |> Chart.Combine  
-//    |> Chart.withLayout (
-//     Layout.init (
-//        Barmode=StyleParam.Barmode.Stack, 
-//        Title= sprintf "Last 24 hours transactions %s" date))
-//    |> Chart.withSize (1200,900)
-//    |> CustomSaveHtmlAs "last24hours"
+let last24hChart = 
+  let stacks = Transactions.getHoursStacks dc
+  if Seq.isEmpty stacks then stacks |> ignore 
+  else
+    stacks
+    |> Seq.map (fun t -> Bar(x = t.Hours, y = t.Amounts, name= sprintf "%A" t.Name))
+    |> Chart.Plot  
+    |> Chart.WithLayout (
+     Layout(
+        barmode="stack", 
+        title= sprintf "Last 24 hours transactions %s" date))
+    |> Chart.WithSize (1200,900)
+    |> CustomSaveHtmlAs "last24hours"
 
 //GenericChart.ofTraceObject sampleChart layout
 //|> Chart.Show

@@ -3,7 +3,6 @@
 open System
 open System.Linq
 open ChartSettings
-open FSharp.Plotly
 open Microsoft.FSharp.Linq.RuntimeHelpers
 
 type dataContext = ChartSettings.PaymentsDb.ServiceTypes.SimpleDataContextTypes.PaymentsData

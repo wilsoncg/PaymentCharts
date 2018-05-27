@@ -72,9 +72,6 @@
     <Reference Include="FSharp.Data.TypeProviders">
       <HintPath>..\packages\FSharp.Data.TypeProviders.5.0.0.2\lib\net40\FSharp.Data.TypeProviders.dll</HintPath>
     </Reference>
-    <Reference Include="FSharp.Plotly">
-      <HintPath>..\packages\FSharp.Plotly.1.0.3\lib\net45\FSharp.Plotly.dll</HintPath>
-    </Reference>
     <Reference Include="HtmlAgilityPack">
       <HintPath>..\packages\HtmlAgilityPack.1.6.0\lib\Net45\HtmlAgilityPack.dll</HintPath>
     </Reference>
@@ -89,6 +86,9 @@
     <Reference Include="System.Data.Linq" />
     <Reference Include="System.Numerics" />
     <Reference Include="System.Xml.Linq" />
+    <Reference Include="XPlot.Plotly">
+      <HintPath>..\packages\XPlot.Plotly.1.4.5\lib\net45\XPlot.Plotly.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

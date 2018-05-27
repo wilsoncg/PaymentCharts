@@ -2,13 +2,13 @@
 
 open System
 open System.IO
-open FSharp.Plotly
+open XPlot.Plotly
 open HtmlAgilityPack
 
-open GenericChart
+open Html
 
-let CustomSaveHtmlAs pathName (ch:GenericChart) =
-    let html = GenericChart.toEmbeddedHTML ch
+let CustomSaveHtmlAs pathName (ch:PlotlyChart) =
+    let html = ch.GetHtml()
     let customHtml =
         let mutable doc = HtmlDocument() 
         doc.LoadHtml html
