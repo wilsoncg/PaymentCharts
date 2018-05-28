@@ -4,6 +4,7 @@ open System
 open System.Linq
 open ChartSettings
 open Microsoft.FSharp.Linq.RuntimeHelpers
+open System.Globalization
 
 type dataContext = ChartSettings.PaymentsDb.ServiceTypes.SimpleDataContextTypes.PaymentsData
 
@@ -183,11 +184,17 @@ let getFrom list selector =
   list
   |> Seq.map selector
 
-type DaysStackInfo = { Name : string; Days : seq<int>; Amounts : seq<decimal>; Colour : string }
+let mapToDateDisplay days =
+    days 
+    |> Seq.map (fun d -> 
+        (new DateTime(DateTime.Now.Year, 1, 1)).AddDays(float(d - 1)).ToString("MMM dd")) 
+
+type DaysStackInfo = { Name : string; Days : seq<int>; DaysText: seq<string>; Amounts : seq<decimal>; Colour : string }
 type HoursStackInfo = { Name : string; Hours : seq<int>; Amounts : seq<decimal>; Colour : string }
 
 let getDaysStacks numDays dataContext =
     lastNDaysTransactionsFaster numDays dataContext
+    |> Seq.sortByDescending (fun t -> first t)
     |> Seq.groupBy (fun t -> 
         let selectType (_, transactionType, _) = transactionType
         selectType t)
@@ -197,7 +204,8 @@ let getDaysStacks numDays dataContext =
             Name = fst t; 
             Days = getFrom trans first;
             Amounts = getFrom trans third;
-            Colour = colourMap (fst t)
+            Colour = colourMap (fst t);
+            DaysText = mapToDateDisplay (getFrom trans first)
         })
 
 let getHoursStacks dataContext =

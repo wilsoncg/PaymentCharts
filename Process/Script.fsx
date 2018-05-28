@@ -15,6 +15,7 @@
 open XPlot.Plotly
 open CustomChartExtensions
 open System.Web.UI.WebControls
+open System
 
 let numDays = ChartSettings.numDays
 let dc = ChartSettings.PaymentsDb.GetDataContext()
@@ -27,14 +28,15 @@ let daysChart =
   stacks
   |> Seq.map (fun t -> 
     Bar(
-     x = t.Days, 
+     x = t.DaysText, 
      y = t.Amounts, 
      name= sprintf "%A" t.Name, 
      marker = Marker(color = t.Colour)))
   |> Chart.Plot  
-  |> Chart.WithLayout (
+  |> Chart.WithLayout(
     Layout(
         barmode="relative", 
+        xaxis= Xaxis(tickangle= -45.),
         title= sprintf "Last %i days transactions %s" numDays date))
   |> Chart.WithSize (1200,900)
   |> CustomSaveHtmlAs "last31days"
