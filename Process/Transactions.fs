@@ -81,21 +81,21 @@ let (|Contains|_|) (c:string) (s:string) =
 
 let colourMap ttype =
     match ttype with
-    | Contains "bank deposit" s -> "#145214"
-    | Contains "card deposit" s -> "#1f7a1f"
-    | Contains "cheque" s -> "#29a329"
-    | Contains "japan" s -> "#33cc33"
-    | Contains "netbanx" s -> "#5cd65c"
-    | Contains "echeck deposit" s -> "#85e085"
-    | Contains "nets" s -> "#adebad"
-    | Contains "billpay" s -> "#99e699"
-    | Contains "bpay" s -> "#c2f0c2"
-    | Contains "pa deposit" s-> "#d6f5d6"
-    | Contains "bank withdrawal" s -> "#ff3385"
-    | Contains "card withdrawal" s-> "#ff80b3"
-    | Contains "pa payout" s -> "#ffb3d1"
-    | Contains "echeck withdrawal" s -> "#e6005c"
-    | _ -> "#9999ff"
+    | Contains "bank deposit" s -> "#339933"
+    | Contains "card deposit" s -> "#40bf40"
+    | Contains "cheque" s -> "#267326"
+    | Contains "japan" s -> "#5c0099"
+    | Contains "netbanx" s -> "#6b00b3"
+    | Contains "echeck deposit" s -> "#7a00cc"
+    | Contains "nets" s -> "#8a00e6"
+    | Contains "billpay" s -> "#9900ff"
+    | Contains "bpay" s -> "#a31aff"
+    | Contains "pa deposit" s-> "#ad33ff"
+    | Contains "bank withdrawal" s -> "#e68a00"
+    | Contains "card withdrawal" s-> "#ff9900"
+    | Contains "pa payout" s -> "#ffa31a"
+    | Contains "echeck withdrawal" s -> "#ffad33"
+    | _ -> "#527a7a"
 
 let private groupedToTuple groupedTransactions currencies =
     let day = 
