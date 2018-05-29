@@ -14,8 +14,6 @@
 
 open XPlot.Plotly
 open CustomChartExtensions
-open System.Web.UI.WebControls
-open System
 
 let numDays = ChartSettings.numDays
 let dc = ChartSettings.PaymentsDb.GetDataContext()

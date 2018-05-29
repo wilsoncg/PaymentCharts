@@ -12,15 +12,54 @@ type Currency = { BaseCurrencyId : int; TermsCurrencyId : int; Rate : decimal; }
 let private createCurrency b t r =
   { BaseCurrencyId = b; TermsCurrencyId = t; Rate = r }
 
+type TransactionType = 
+| BankReversal of int
+| CardReversal of int
+| BankDeposit of int
+| CardDeposit of int
+| ChequeVerisignPaypal of int
+| BillingJapan of int
+| NetbanxDeposit of int
+| EcheckDeposit of int
+| NETS of int
+| BillpayDeposit of int
+| BPayDeposit of int
+| PADeposit of int
+| CardWithdrawal of int
+| BankWithdrawal of int
+| EcheckWithdawal of int
+| PAPayout of int
+| OtherTransaction of int
+
+let transactionTypeMap ttype =
+ match ttype with
+ | 63 | 26 | 28 | 269 -> BankReversal ttype
+ | 230 | 231 -> CardReversal ttype
+ | 25 | 27| 29 -> BankDeposit ttype
+ | 82 | 83|  84 -> CardDeposit ttype
+ | 39 -> ChequeVerisignPaypal ttype
+ | 239 -> BillingJapan ttype
+ | 234 | 236 -> NetbanxDeposit ttype
+ | 337 -> EcheckDeposit ttype
+ | 273 -> NETS ttype
+ | 275 -> BillpayDeposit ttype
+ | 11 -> BPayDeposit ttype
+ | 241 -> PADeposit ttype
+ | 102 | 62 | 103 -> BankWithdrawal ttype
+ | 339 -> EcheckWithdawal ttype
+ | 115 -> CardWithdrawal ttype
+ | 270 -> PAPayout ttype
+ | _ -> OtherTransaction ttype
+
 type Transaction = {
     Day : int;
     Hour : int;
-    TypeId : int;
+    TypeId : TransactionType;
     CurrencyId : int;
     SumAmount : decimal;
     }
 let private createTransaction d h t c a =
-    { Day = d; Hour = h; TypeId = t; CurrencyId = c; SumAmount = a }
+    { Day = d; Hour = h; TypeId = transactionTypeMap t; CurrencyId = c; SumAmount = a }
 
 let currencyList (dc:dataContext) = 
   let rates = 
@@ -54,25 +93,25 @@ let convert list amount fromId toId =
    | Some c -> Math.Round(c, 2) 
    | None -> 0m
 
-let transactionTypeMap ttype =
+let transactionTypeStringMap ttype =
  match ttype with
- | 63 | 26 | 28 | 269 -> "Bank Reversal"
- | 230 | 231 -> "Card Reversal" 
- | 25 | 27| 29 -> "Bank Deposit" 
- | 82 | 83|  84 -> "Card Deposit"
- | 39 -> "Cheque/Verisign/Paypal"
- | 239 -> "Billing Japan"
- | 234 | 236 -> "Netbanx Deposit"
- | 337 -> "Echeck Deposit"
- | 273 -> "NETS Deposit"
- | 275 -> "Billpay Deposit"
- | 11 -> "BPay deposit" 
- | 241 -> "PA Deposit"
- | 102 | 62 | 103 -> "Bank Withdrawal"
- | 339 -> "Echeck Withdrawal"
- | 115 -> "Card Withdrawal"
- | 270 -> "PA Payout"
- | _ -> "Other"
+ | BankReversal _ -> "Bank Reversal"
+ | CardReversal _ -> "Card Reversal" 
+ | BankDeposit _ -> "Bank Deposit" 
+ | CardDeposit _ -> "Card Deposit"
+ | ChequeVerisignPaypal _ -> "Cheque/Verisign/Paypal"
+ | BillingJapan _ -> "Billing Japan"
+ | NetbanxDeposit _ -> "Netbanx Deposit"
+ | EcheckDeposit _ -> "Echeck Deposit"
+ | NETS _ -> "NETS Deposit"
+ | BillpayDeposit _ -> "Billpay Deposit"
+ | BPayDeposit _ -> "BPay deposit" 
+ | PADeposit _ -> "PA Deposit"
+ | BankWithdrawal _ -> "Bank Withdrawal"
+ | EcheckWithdawal _ -> "Echeck Withdrawal"
+ | CardWithdrawal _ -> "Card Withdrawal"
+ | PAPayout _ -> "PA Payout"
+ | OtherTransaction _ -> "Other"
 
 let (|Contains|_|) (c:string) (s:string) =
     if s.ToLower().Contains(c) then
@@ -82,21 +121,21 @@ let (|Contains|_|) (c:string) (s:string) =
 
 let colourMap ttype =
     match ttype with
-    | Contains "bank deposit" s -> "#339933"
-    | Contains "card deposit" s -> "#40bf40"
-    | Contains "cheque" s -> "#267326"
-    | Contains "japan" s -> "#5c0099"
-    | Contains "netbanx" s -> "#6b00b3"
-    | Contains "echeck deposit" s -> "#7a00cc"
-    | Contains "nets" s -> "#8a00e6"
-    | Contains "billpay" s -> "#9900ff"
-    | Contains "bpay" s -> "#a31aff"
-    | Contains "pa deposit" s-> "#ad33ff"
-    | Contains "bank withdrawal" s -> "#e68a00"
-    | Contains "card withdrawal" s-> "#ff9900"
-    | Contains "pa payout" s -> "#ffa31a"
-    | Contains "echeck withdrawal" s -> "#ffad33"
-    | _ -> "#527a7a"
+    | BankDeposit _ -> "#339933"
+    | CardDeposit _ -> "#40bf40"
+    | ChequeVerisignPaypal _ -> "#267326"
+    | BillingJapan _ -> "#5c0099"
+    | NetbanxDeposit _ -> "#6b00b3"
+    | EcheckDeposit _ -> "#7a00cc"
+    | NETS _ -> "#8a00e6"
+    | BillpayDeposit _ -> "#9900ff"
+    | BPayDeposit _ -> "#a31aff"
+    | PADeposit _-> "#ad33ff"
+    | BankWithdrawal _ -> "#e68a00"
+    | CardWithdrawal _ -> "#ff9900"
+    | PAPayout _ -> "#ffa31a"
+    | EcheckWithdawal _ -> "#ffad33"
+    | OtherTransaction _ -> "#527a7a"
 
 let private groupedToTuple groupedTransactions currencies =
     let day = 
@@ -104,7 +143,7 @@ let private groupedToTuple groupedTransactions currencies =
         | (tday, _) -> tday
     let stype =
         match fst groupedTransactions with
-        | (_, ttype) -> transactionTypeMap ttype
+        | (_, ttype) -> ttype
     let sumAmount = 
         snd groupedTransactions 
         |> Seq.fold (fun acc (tran:Transaction) -> 
@@ -114,9 +153,8 @@ let private groupedToTuple groupedTransactions currencies =
         ) 0m
     let makeWithdrawalNegative stype amount =
         match stype with
-        | Contains "echeck" s -> amount
-        | Contains "withdrawal" s -> -amount
-        | Contains "payout" s -> -amount
+        | EcheckWithdawal _ -> amount
+        | BankWithdrawal _ | CardWithdrawal _ | PAPayout _ -> -amount
         | _ -> amount
     day, stype, makeWithdrawalNegative stype sumAmount
 
@@ -126,6 +164,7 @@ let lastNDaysQueryFaster numDays (dc:dataContext) =
     query {
         for transaction in dc.LedgerTransaction do
         where (transaction.LedgerTransactionDateTime < DateTime.UtcNow.Subtract(TimeSpan.FromDays(float numDays)))
+        sortByDescending transaction.LedgerTransactionDateTime 
         select (transaction.LedgerTransactionId)
         take 1 }
    let notTestOrDemo =
@@ -137,7 +176,7 @@ let lastNDaysQueryFaster numDays (dc:dataContext) =
     }
    let interestedTransactions =
     query {
-        for transaction in dc.LedgerTransaction.AsQueryable() do 
+        for transaction in dc.LedgerTransaction do 
         where (transaction.LedgerTransactionId >= findLatestTransaction.First() &&
                 typeIds.Contains(transaction.LedgerTransactionTypeId) &&
                 notTestOrDemo.Contains(transaction.AccountOperatorId.Value))
@@ -201,7 +240,7 @@ let getDaysStacks numDays dataContext =
     |> Seq.map (fun t -> 
         let trans = snd t
         { 
-            Name = fst t; 
+            Name = transactionTypeStringMap (fst t); 
             Days = getFrom trans first;
             Amounts = getFrom trans third;
             Colour = colourMap (fst t);
@@ -214,7 +253,7 @@ let getHoursStacks dataContext =
     |> Seq.map (fun t -> 
         let trans = snd t
         { 
-            Name = fst t; 
+            Name = transactionTypeStringMap (fst t); 
             Hours = getFrom trans first;
             Amounts = getFrom trans third;
             Colour = colourMap (fst t)

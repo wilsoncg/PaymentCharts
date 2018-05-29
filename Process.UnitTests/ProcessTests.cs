@@ -11,19 +11,19 @@ namespace Process.UnitTests
         [TestMethod]
         public void TestStacksAreCorrect()
         {
-            var stacks = Transactions.lastNDaysQueryFasterWithContext(365).ToList();
+            var stacks = Transactions.getDaysStacks(120, ChartSettings.PaymentsDb.GetDataContext()).ToList();
 
             Assert.IsTrue(stacks.Any(), "stacks empty");
-            //Assert.AreEqual(3, stacks.Count);
+            Assert.AreEqual(2, stacks.Count);
 
-            //var deposits = stacks.Where(x => x.Name == "Card Deposit");
-            //var withdrawals = stacks.Where(x => x.Name == "Card Withdrawal");
+            var deposits = stacks.Where(x => x.Name == "Card Deposit");
+            var withdrawals = stacks.Where(x => x.Name == "Card Withdrawal");
 
-            //Assert.AreEqual(1, deposits.Count());
-            //Assert.AreEqual(2655 + 220, deposits.Sum(x => x.Amounts.Sum()));
+            Assert.AreEqual(1, deposits.Count());
+            Assert.AreEqual(2655 + 220, deposits.Sum(x => x.Amounts.Sum()));
 
-            //Assert.AreEqual(1, withdrawals.Count());
-            //Assert.AreEqual(110, withdrawals.Sum(x => x.Amounts.Sum()));
+            Assert.AreEqual(1, withdrawals.Count());
+            Assert.AreEqual(110, withdrawals.Sum(x => x.Amounts.Sum()));
         }
 
         //[TestMethod]
