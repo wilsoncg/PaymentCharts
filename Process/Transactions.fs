@@ -135,7 +135,7 @@ let colourMap ttype =
     | CardWithdrawal _ -> "#ff9900"
     | PAPayout _ -> "#ffa31a"
     | EcheckWithdawal _ -> "#ffad33"
-    | OtherTransaction _ -> "#527a7a"
+    | OtherTransaction | CardReversal | BankReversal -> "#527a7a"
 
 let private groupedToTuple groupedTransactions currencies =
     let day = 
