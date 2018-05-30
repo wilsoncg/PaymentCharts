@@ -13,43 +13,43 @@ let private createCurrency b t r =
   { BaseCurrencyId = b; TermsCurrencyId = t; Rate = r }
 
 type TransactionType = 
-| BankReversal of int
-| CardReversal of int
-| BankDeposit of int
-| CardDeposit of int
-| ChequeVerisignPaypal of int
-| BillingJapan of int
-| NetbanxDeposit of int
-| EcheckDeposit of int
-| NETS of int
-| BillpayDeposit of int
-| BPayDeposit of int
-| PADeposit of int
-| CardWithdrawal of int
-| BankWithdrawal of int
-| EcheckWithdawal of int
-| PAPayout of int
-| OtherTransaction of int
+| BankReversal
+| CardReversal
+| BankDeposit
+| CardDeposit
+| ChequeVerisignPaypal
+| BillingJapan
+| NetbanxDeposit
+| EcheckDeposit
+| NETS
+| BillpayDeposit
+| BPayDeposit
+| PADeposit
+| CardWithdrawal
+| BankWithdrawal
+| EcheckWithdawal
+| PAPayout
+| OtherTransaction
 
 let transactionTypeMap ttype =
  match ttype with
- | 63 | 26 | 28 | 269 -> BankReversal ttype
- | 230 | 231 -> CardReversal ttype
- | 25 | 27| 29 -> BankDeposit ttype
- | 82 | 83|  84 -> CardDeposit ttype
- | 39 -> ChequeVerisignPaypal ttype
- | 239 -> BillingJapan ttype
- | 234 | 236 -> NetbanxDeposit ttype
- | 337 -> EcheckDeposit ttype
- | 273 -> NETS ttype
- | 275 -> BillpayDeposit ttype
- | 11 -> BPayDeposit ttype
- | 241 -> PADeposit ttype
- | 102 | 62 | 103 -> BankWithdrawal ttype
- | 339 -> EcheckWithdawal ttype
- | 115 -> CardWithdrawal ttype
- | 270 -> PAPayout ttype
- | _ -> OtherTransaction ttype
+ | 63 | 26 | 28 | 269 -> BankReversal 
+ | 230 | 231 -> CardReversal 
+ | 25 | 27| 29 -> BankDeposit 
+ | 82 | 83|  84 -> CardDeposit 
+ | 39 -> ChequeVerisignPaypal 
+ | 239 -> BillingJapan 
+ | 234 | 236 -> NetbanxDeposit 
+ | 337 -> EcheckDeposit 
+ | 273 -> NETS 
+ | 275 -> BillpayDeposit 
+ | 11 -> BPayDeposit 
+ | 241 -> PADeposit 
+ | 102 | 62 | 103 -> BankWithdrawal 
+ | 339 -> EcheckWithdawal 
+ | 115 -> CardWithdrawal 
+ | 270 -> PAPayout 
+ | _ -> OtherTransaction 
 
 type Transaction = {
     Day : int;
