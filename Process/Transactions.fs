@@ -241,20 +241,23 @@ let getDaysStacks numDays dataContext =
         let trans = snd t
         { 
             Name = transactionTypeStringMap (fst t); 
-            Days = getFrom trans first;
+            Days = getFrom trans first;            
+            DaysText = mapToDateDisplay (getFrom trans first);
             Amounts = getFrom trans third;
             Colour = colourMap (fst t);
-            DaysText = mapToDateDisplay (getFrom trans first)
         })
 
 let getHoursStacks dataContext =
     last24hoursTransactions dataContext
-    |> Seq.groupBy (fun t -> second t)
+    |> Seq.sortByDescending (fun t -> first t)
+    |> Seq.groupBy (fun t -> 
+        let selectType (_, transactionType, _) = transactionType
+        selectType t)
     |> Seq.map (fun t -> 
         let trans = snd t
         { 
             Name = transactionTypeStringMap (fst t); 
             Hours = getFrom trans first;
             Amounts = getFrom trans third;
-            Colour = colourMap (fst t)
+            Colour = colourMap (fst t);
         }) 
