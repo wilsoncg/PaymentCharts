@@ -4,9 +4,8 @@ open System
 open System.Linq
 open ChartSettings
 open Microsoft.FSharp.Linq.RuntimeHelpers
-open System.Globalization
 
-type dataContext = ChartSettings.PaymentsDb.ServiceTypes.SimpleDataContextTypes.PaymentsData
+type dataContext = PaymentsDb.dataContext
 
 type Currency = { BaseCurrencyId : int; TermsCurrencyId : int; Rate : decimal; }
 let private createCurrency b t r =
@@ -64,7 +63,7 @@ let private createTransaction d h t c a =
 let currencyList (dc:dataContext) = 
   let rates = 
     query {
-        for r in dc.FxRate do
+        for r in dc.Dbo.FxRate do
         select r
         }
     |> Seq.toList
@@ -162,24 +161,24 @@ let lastNDaysQueryFaster numDays (dc:dataContext) =
    let typeIds = [|63;26;28;269;82;83;84;115;230;231;25;27;29;102;62;103;39;239;234;236;273;275;11;270;241;337;339|]
    let findLatestTransaction =
     query {
-        for transaction in dc.LedgerTransaction do
+        for transaction in dc.Dbo.LedgerTransaction do
         where (transaction.LedgerTransactionDateTime < DateTime.UtcNow.Subtract(TimeSpan.FromDays(float numDays)))
         sortByDescending transaction.LedgerTransactionDateTime 
         select (transaction.LedgerTransactionId)
         take 1 }
    let notTestOrDemo =
     query {
-        for ao in dc.AccountOperator do
-        join lccp in dc.LegalContractCounterParty on (ao.LegalContractCounterPartyId = lccp.LegalContractCounterPartyId)
-        where (lccp.IsDemo.Value <> true && lccp.IsTest.Value <> true)
+        for ao in dc.Dbo.AccountOperator do
+        join lccp in dc.Dbo.LegalContractCounterParty on (ao.LegalContractCounterPartyId = lccp.LegalContractCounterPartyId)
+        where (lccp.IsDemo <> true && lccp.IsTest <> true)
         select ao.LegalPartyId
     }
    let interestedTransactions =
     query {
-        for transaction in dc.LedgerTransaction do 
+        for transaction in dc.Dbo.LedgerTransaction do 
         where (transaction.LedgerTransactionId >= findLatestTransaction.First() &&
                 typeIds.Contains(transaction.LedgerTransactionTypeId) &&
-                notTestOrDemo.Contains(transaction.AccountOperatorId.Value))
+                notTestOrDemo.Contains(transaction.AccountOperatorId))
         select transaction } 
    query {
         for transaction in interestedTransactions do

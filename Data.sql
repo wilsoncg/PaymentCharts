@@ -77,29 +77,32 @@ create table [dbo].[ClientType] (
 
 USE PaymentsData
 
+declare @date DateTime
+set @date = GETUTCDATE()
+
 -- Insert data into the Table1 table.
 INSERT INTO [LedgerTransaction] (LedgerTransactionId, LedgerTransactionTypeId, LedgerTransactionDateTime, Amount, CurrencyId, AccountOperatorId)
-  VALUES(1, 82, '2018-01-01 13:20:50.857', 200.000000, 6, 1);
+  VALUES(1, 82, @date - (0.04167*10), 200.000000, 6, 1);
  INSERT INTO [LedgerTransaction] (LedgerTransactionId, LedgerTransactionTypeId, LedgerTransactionDateTime, Amount, CurrencyId, AccountOperatorId)
-  VALUES(2, 82, '2018-05-10 13:20:50.857', 200.000000, 24, 1);
+  VALUES(2, 82, @date - (0.04167*9), 200.000000, 24, 1);
 INSERT INTO [LedgerTransaction] (LedgerTransactionId, LedgerTransactionTypeId, LedgerTransactionDateTime, Amount, CurrencyId, AccountOperatorId)
-   VALUES(3, 83, '2018-05-10 12:23:33.760', 20.000000, 25, 1);
+   VALUES(3, 83, @date - (0.04167*8), 20.000000, 25, 1);
 INSERT INTO [LedgerTransaction] (LedgerTransactionId, LedgerTransactionTypeId, LedgerTransactionDateTime, Amount, CurrencyId, AccountOperatorId)
-VALUES(4, 82, '2018-05-09 13:24:40.660', 100.000000, 6, 1);
+VALUES(4, 82, @date - (0.04167*7), 100.000000, 6, 1);
 INSERT INTO [LedgerTransaction] (LedgerTransactionId, LedgerTransactionTypeId, LedgerTransactionDateTime, Amount, CurrencyId, AccountOperatorId)
-VALUES(5, 115, '2018-05-09 13:25:10.760', 50.000000, 6, 1);
+VALUES(5, 115, @date - (0.04167*6), 50.000000, 6, 1);
 INSERT INTO [LedgerTransaction] (LedgerTransactionId, LedgerTransactionTypeId, LedgerTransactionDateTime, Amount, CurrencyId, AccountOperatorId)
-VALUES(6, 115, '2018-05-09 13:25:38.953', 60.000000, 6, 1);
+VALUES(6, 115, @date - (0.04167*5), 60.000000, 6, 1);
 INSERT INTO [LedgerTransaction] (LedgerTransactionId, LedgerTransactionTypeId, LedgerTransactionDateTime, Amount, CurrencyId, AccountOperatorId)
-VALUES(7, 82, '2018-05-08 13:26:29.303', 2400.000000, 6, 1);
+VALUES(7, 82, @date - (0.04167*4), 2400.000000, 6, 1);
 INSERT INTO [LedgerTransaction] (LedgerTransactionId, LedgerTransactionTypeId, LedgerTransactionDateTime, Amount, CurrencyId, AccountOperatorId)
-VALUES(8, 82, '2018-05-08 13:28:01.110', 50.000000, 24, 1);
+VALUES(8, 82, @date - (0.04167*3), 50.000000, 24, 1);
 INSERT INTO [LedgerTransaction] (LedgerTransactionId, LedgerTransactionTypeId, LedgerTransactionDateTime, Amount, CurrencyId, AccountOperatorId)
-VALUES(9, 82, '2018-05-08 13:29:55.207', 55.000000, 6, 1);
+VALUES(9, 82, @date - (0.04167*2), 55.000000, 6, 1);
 INSERT INTO [LedgerTransaction] (LedgerTransactionId, LedgerTransactionTypeId, LedgerTransactionDateTime, Amount, CurrencyId, AccountOperatorId)
-VALUES(10, 82, '2018-05-08 13:30:06.757', 50.000000, 6, 1);
+VALUES(10, 82, @date - 0.04167, 50.000000, 6, 1);
 INSERT INTO [LedgerTransaction] (LedgerTransactionId, LedgerTransactionTypeId, LedgerTransactionDateTime, Amount, CurrencyId, AccountOperatorId)
-VALUES(11, 1, '2018-05-08 13:31:06.757', 50000.000000, 25, 2);
+VALUES(11, 1, @date, 50000.000000, 25, 2);
 
 insert into [dbo].[GeneralLedger] ([LedgerId], [LedgerTransactionId]) values (1, 1)
 insert into [dbo].[GeneralLedger] ([LedgerId], [LedgerTransactionId]) values (1, 2)

@@ -2,7 +2,7 @@
 
 Some F# code combined with Plotly for graphing some payment transactions.
 
-- [FSharp.Plotly](https://github.com/muehlhaus/FSharp.Plotly)
+- [XPlot.Plotly](https://www.nuget.org/packages/XPlot.Plotly/)
 - [FSharp.Data.SqlProvider](https://fsprojects.github.io/SQLProvider/) *Not be confused with [FSharp.Data.TypeProviders](http://fsprojects.github.io/FSharp.Data.TypeProviders/sqldata.html) which ships with FSharp*
 - [FSharp.Configuration](https://github.com/fsprojects/FSharp.Configuration)
 
@@ -15,7 +15,7 @@ Some F# code combined with Plotly for graphing some payment transactions.
 #load "ChartSettings.fs"
 #load "Transactions.fs"
 
-open FSharp.Plotly
+open XPlot.Plotly
 open System.Web.UI.WebControls
 
 let numDays = ChartSettings.numDays
@@ -35,3 +35,21 @@ let daysChart =
 
 Creates something like this:
 ![Last 7 days](last7days.png)
+
+### Error
+
+```
+PS D:\Projects\fsharp\PaymentCharts\Process> dotnet build
+Microsoft (R) Build Engine version 16.7.0-preview-20360-03+188921e2f for .NET
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  You are using a preview version of .NET. See: https://aka.ms/dotnet-core-preview
+error FS3053 : The type provider 'FSharp.Configuration.ConfigTypeProvider+FSharpConfigurationProvider' reported an error
+ : The type provider constructor has thrown an exception: System.Runtime.Caching is not supported on this platform. [D:\
+Projects\fsharp\PaymentCharts\Process\Process.fsproj]
+FSC : warning FS3005: Referenced assembly 'C:\Users\craig\.nuget\packages\fsharp.configuration\2.0.0-alpha2\lib\netstand
+ard2.0\FSharp.Configuration.dll' has assembly level attribute 'Microsoft.FSharp.Core.CompilerServices.TypeProviderAssemb
+lyAttribute' but no public type provider classes were found [D:\Projects\fsharp\PaymentCharts\Process\Process.fsproj]
+```

@@ -1,21 +1,23 @@
 ﻿// Learn more about F# at http://fsharp.org. See the 'F# Tutorial' project
 // for more guidance on F# programming.
-#r "../packages/XPlot.Plotly.1.4.5/lib/net45/XPlot.Plotly.dll"
-#r "../packages/SQLProvider.1.1.42/lib/net451/FSharp.Data.SqlProvider.dll"
-#r "../packages/FSharp.Configuration.1.3.0/lib/net45/FSharp.Configuration.dll"
-#r "../packages/HtmlAgilityPack.1.6.0/lib/Net45/HtmlAgilityPack.dll"
-#r "../packages/Newtonsoft.Json.10.0.3/lib/net45/Newtonsoft.Json.dll"
-#r "../packages/FSharp.Data.TypeProviders.5.0.0.2/lib/net40/FSharp.Data.TypeProviders.dll"
-#r "System.Data.Linq"
+// SqlProvider (https://github.com/fsprojects/SQLProvider) FSharp.Data.SqlTypeProvider namespace
+// https://github.com/fsprojects/FSharp.Data.SqlClient/issues/373
+#r "nuget:XPlot.Plotly"
+#r "nuget:SQLProvider"
+#r "nuget:HtmlAgilityPack"
+#r "nuget:FSharp.Data.TypeProviders"
+//#r "System.Data.Linq"
+//#r "System.Data.SqlClient"
 
 #load "ChartSettings.fs"
 #load "Transactions.fs"
 #load "CustomChartExtensions.fs"
 
+open FSharp.Data
 open XPlot.Plotly
 open CustomChartExtensions
 
-let numDays = ChartSettings.numDays
+let numDays = 31
 let dc = ChartSettings.PaymentsDb.GetDataContext()
 let date = System.DateTime.UtcNow.ToString("dd/MM/yy")
 
